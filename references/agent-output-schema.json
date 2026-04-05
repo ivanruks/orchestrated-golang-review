@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SubAgentReport",
+  "description": "JSON output schema for golang-review sub-agents",
+  "type": "object",
+  "required": ["agent", "files_checked", "findings", "positive"],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "enum": ["correctness", "concurrency", "conventions", "performance", "security", "consistency", "transactions"]
+    },
+    "files_checked": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "title", "file", "line", "category", "problem", "code_before", "code_after", "requires_verification"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^(CORR|CONC|CONV|PERF|SEC|CONS|TXN)-[0-9]+$"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "major", "minor"]
+          },
+          "title": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer" },
+          "category": { "type": "string" },
+          "problem": { "type": "string" },
+          "code_before": { "type": "string" },
+          "code_after": { "type": "string" },
+          "requires_verification": { "type": "boolean" }
+        }
+      }
+    },
+    "positive": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  }
+}
