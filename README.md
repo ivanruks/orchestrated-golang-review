@@ -348,3 +348,9 @@ _generated\.go$   — other generated code
 - If GitLab MCP is unavailable during Phase 1, the review stops with an error message
 - If a sub-agent fails (timeout, error), the review continues with remaining agents and a note is added to the report
 - If the MR contains no `.go` files, the review stops with "No Go files changed in this MR"
+
+---
+
+## License
+
+[MIT](LICENSE)
