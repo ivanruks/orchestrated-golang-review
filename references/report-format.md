@@ -4,7 +4,7 @@ Use this template to render the final review report from merged sub-agent JSON r
 
 ---
 
-# Go Code Review | MR !{iid}: {title}
+# Go Code Review | {title}
 **{author}** · `{source_branch}` → `{target_branch}`
 
 ## MR Overview
