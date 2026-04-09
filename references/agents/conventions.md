@@ -50,6 +50,12 @@ Return JSON matching the schema in `references/agent-output-schema.json`.
 Most convention issues are `major` or `minor`. Only mark as `critical` if the violation causes real bugs (e.g., context in struct causing goroutine leak).
 `positive` array is required — acknowledge good idiomatic patterns.
 
+## HALT Conditions
+
+- If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.
+- If a diff file is unreadable or empty, skip it and note in `positive`: "Skipped unreadable file: <path>".
+- If File Access fails for a file you need, analyze based on the diff alone and set `requires_verification: true` on any related findings.
+
 ## Scope
 
 Check: all `.go` files in the diff.

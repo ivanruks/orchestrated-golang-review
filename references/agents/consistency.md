@@ -53,6 +53,12 @@ Consistency issues are typically `critical` (broken interface contract, type mis
 `problem` must explain what breaks: "handler sends int64 but service expects int — truncation on values > 2^31".
 `positive` array is required — note good consistency practices.
 
+## HALT Conditions
+
+- If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.
+- If a diff file is unreadable or empty, skip it and note in `positive`: "Skipped unreadable file: <path>".
+- If File Access fails for a file you need, analyze based on the diff alone and set `requires_verification: true` on any related findings.
+
 ## Scope
 
 Check: all `.go` files in the diff AND their direct callers/callees.

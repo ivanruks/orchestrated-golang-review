@@ -47,6 +47,12 @@ Every finding MUST include `code_before` and `code_after` with working fix.
 Every finding MUST explain production impact in `problem` field.
 `positive` array is required — note what the code does well in your domain.
 
+## HALT Conditions
+
+- If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.
+- If a diff file is unreadable or empty, skip it and note in `positive`: "Skipped unreadable file: <path>".
+- If File Access fails for a file you need, analyze based on the diff alone and set `requires_verification: true` on any related findings.
+
 ## Scope
 
 Check: all `.go` files in the diff.

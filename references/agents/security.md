@@ -55,6 +55,13 @@ Security issues are typically `critical` (injection, auth bypass, data exposure)
 `problem` must describe the attack vector: "attacker can X by sending Y to endpoint Z".
 `positive` array is required — note good security practices (parameterized queries, proper auth).
 
+## HALT Conditions
+
+- If no findings after checking every item in your checklist, re-examine the highest-risk file (the one handling user input or external data) once more. Zero security findings on code that processes user input is suspicious — verify you checked all injection and auth paths.
+- If after re-examination there are still no findings, return empty `findings` array. This is valid — do NOT fabricate findings.
+- If a diff file is unreadable or empty, skip it and note in `positive`: "Skipped unreadable file: <path>".
+- If File Access fails for a file you need, analyze based on the diff alone and set `requires_verification: true` on any related findings.
+
 ## Scope
 
 Check: all `.go` files in the diff, plus configuration files if present (`.yaml`, `.json`, `.env`).
