@@ -17,6 +17,8 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Command injection: user input reaches `os/exec.Command` arguments — must validate/whitelist
 - [ ] LDAP injection: user input in LDAP filter without escaping
 - [ ] Template injection: user input passed to `template.HTML` or `template.JS` — XSS vector
+- [ ] SSRF: user input used as URL in `http.Get`/`http.Post`/`http.NewRequest` — attacker can scan internal network
+- [ ] Open redirect: user input used in `http.Redirect` URL — enables phishing via trusted domain
 
 ### Path Traversal
 - [ ] `filepath.Join` or `os.Open` with user-supplied path without `filepath.Clean` + base path validation
@@ -40,6 +42,7 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Stack trace or internal error details returned in HTTP response to client
 - [ ] CORS configured with `*` allowing any origin
 - [ ] Missing rate limiting on authentication endpoints
+- [ ] HTTP response header injection: user input passed to `w.Header().Set` without sanitization
 
 ### Integer Safety
 - [ ] Integer overflow in size/limit/money calculations — can bypass validation or cause wrong amounts

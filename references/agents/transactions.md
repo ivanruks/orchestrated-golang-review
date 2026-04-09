@@ -23,6 +23,7 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Transaction scope too large — holding locks across external calls (HTTP, gRPC) causes deadlocks
 - [ ] Nested transaction attempt — most Go DB drivers don't support savepoints by default
 - [ ] Read-then-write without transaction — TOCTOU race under concurrent requests
+- [ ] `context.WithTimeout` used inside transaction scope — context cancellation does not automatically rollback the transaction, leaving it open
 
 ### Partial Failure Handling
 - [ ] DB write succeeds but cache update fails — stale data served until cache expires

@@ -24,6 +24,9 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Large struct passed by value (>5 fields) where pointer would avoid copy
 - [ ] String concatenation with `+` in loop — use `strings.Builder`
 - [ ] `regexp.Compile` called inside function body — compile once at package level
+- [ ] `defer` inside tight loop — ~50ns overhead per call, significant at millions of iterations
+- [ ] `reflect` package used in hot path — 10-100x slower than direct type access
+- [ ] `fmt.Sprintf` in hot path where `strconv.Itoa`/`strconv.FormatInt` would avoid allocation
 
 ### I/O and Database
 - [ ] SQL query inside a loop — N+1 problem, use batch query or JOIN

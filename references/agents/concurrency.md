@@ -17,6 +17,7 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Goroutine outlives its parent scope — will it be garbage collected or leak?
 - [ ] `errgroup.Go` without proper error propagation or context cancellation
 - [ ] `WaitGroup.Add` called inside the goroutine instead of before `go` — race with `Wait()`
+- [ ] `context.WithCancel`/`context.WithTimeout` created but `cancel` never called — derived context leaks until parent is cancelled
 
 ### Data Races
 - [ ] Shared mutable state accessed from multiple goroutines without sync (mutex, channel, atomic)
@@ -24,6 +25,7 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Slice append from multiple goroutines — causes data corruption or panic
 - [ ] Loop variable captured by goroutine closure (pre-Go 1.22) — all goroutines see final value
 - [ ] HTTP handler modifying package-level or struct-level state — each request is a goroutine
+- [ ] Mixed atomic and non-atomic access to the same variable — `sync/atomic` only works if ALL access is atomic
 
 ### Mutex Hygiene
 - [ ] `RWMutex` used where `Mutex` would suffice (or vice versa)
