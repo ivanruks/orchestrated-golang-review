@@ -61,6 +61,6 @@ You WILL need to load files not in the diff — this is expected for consistency
 
 ## Context Loading
 
-Read `references/context-rules/consistency.md` before starting analysis. You will almost always need to load additional files to trace call chains. Always check `files/` first, then use GitLab MCP.
+Read `references/context-rules/consistency.md` before starting analysis. You will almost always need to load additional files to trace call chains, using the File Access instructions provided in your prompt.
 
 Also read Wave 1 reports from `reports/` directory to avoid duplicating findings and to use their context (e.g., correctness agent found a nil issue — check if it propagates through the flow).

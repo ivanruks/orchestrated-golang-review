@@ -52,4 +52,4 @@ Skip: `vendor/`, `*_mock.go`, `*.pb.go`, `*_generated.go`, `testdata/`, `*.gen.g
 
 ## Context Loading
 
-Read `references/context-rules/correctness.md` before starting analysis. Follow its triggers to load additional files when needed. Always check `files/` directory first before calling GitLab MCP.
+Read `references/context-rules/correctness.md` before starting analysis. Follow its triggers to load additional files when needed, using the File Access instructions provided in your prompt.
