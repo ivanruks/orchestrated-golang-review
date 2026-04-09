@@ -205,6 +205,9 @@ For each pair of findings from different agents:
     - transactions > correctness (for resource leaks in tx scope)
     - security > correctness (for injection issues)
     - consistency > conventions (for interface contract issues)
+    - conventions > correctness (for error handling style — missing %w, error string format)
+    - concurrency > performance (for lock contention — deadlock risk outweighs perf concern)
+    - concurrency > correctness (for context cancellation leaks — goroutine lifecycle is root cause)
   - If neither is more specialized, keep both (different perspectives are valuable)
 
 ### Step 4.3 — Sort and group
