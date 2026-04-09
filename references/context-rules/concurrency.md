@@ -12,3 +12,5 @@ Before analyzing diffs, read this table. When you see a trigger pattern in the d
 | HTTP handler modifying package-level variable | Package-level var declaration + all handlers | Use File Access instructions from your prompt | Each HTTP handler runs in its own goroutine — shared state needs sync |
 | `select` statement | All cases and the channel sources | Use File Access instructions from your prompt | Check for missing `default` or missing `ctx.Done()` case |
 | Loop variable used in goroutine (pre-Go 1.22) | go.mod for Go version | Use File Access instructions from your prompt | If Go < 1.22, loop var capture is a race condition |
+| `sync.Once` | Full file — check what `Do()` executes | Use File Access instructions from your prompt | If Do() can fail, error is swallowed on retry — verify initialization safety |
+| `atomic.` (sync/atomic operations) | All access sites for the same variable | Search repo for variable name, then use File Access instructions | Mixed atomic/non-atomic access is a data race — ALL access must be atomic |

@@ -12,3 +12,5 @@ Before analyzing diffs, read this table. When you see a trigger pattern in the d
 | Large struct copied by value (>5 fields) | Struct definition + call sites | Use File Access instructions from your prompt | Consider pointer receiver/parameter to avoid copy cost |
 | `regexp.Compile` inside function (not package-level) | Full file | Use File Access instructions from your prompt | Compile once at package level, not per call |
 | `map` creation without size hint | Full function to estimate entry count | Use File Access instructions from your prompt | `make(map[K]V, n)` avoids rehashing |
+| `defer` inside `for` loop | Full function to estimate iteration count | Use File Access instructions from your prompt | ~50ns overhead per defer, significant at millions of iterations |
+| `reflect.` in non-test code | Full function + callers to assess hot path | Use File Access instructions from your prompt | Reflection is 10-100x slower than direct access |

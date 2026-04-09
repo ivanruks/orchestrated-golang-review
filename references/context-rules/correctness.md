@@ -12,3 +12,4 @@ Before analyzing diffs, read this table. When you see a trigger pattern in the d
 | `panic()` in non-test code | Full function + callers | Use File Access instructions from your prompt | Determine if panic is in init/main or leaks into normal flow |
 | `nil` returned where pointer is expected | Interface definition and callers | Use File Access instructions from your prompt | Check if callers handle nil |
 | Type assertion without ok check: `x.(T)` | Full function | Use File Access instructions from your prompt | Will panic on wrong type at runtime |
+| `context.WithCancel` or `context.WithTimeout` without `defer cancel()` | Full function | Use File Access instructions from your prompt | Derived context leaks goroutines and resources until parent is cancelled |

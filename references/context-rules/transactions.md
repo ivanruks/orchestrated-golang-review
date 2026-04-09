@@ -12,3 +12,4 @@ Before analyzing diffs, read this table. When you see a trigger pattern in the d
 | Redis/cache SET after DB write | Full function | Use File Access instructions from your prompt | If DB write succeeds but cache SET fails, stale data is served |
 | Message publish (Kafka/RabbitMQ/NATS) after DB write | Full function | Use File Access instructions from your prompt | Outbox pattern needed — message can be lost if publish fails after commit |
 | Retry logic around state-changing operation | Full function | Use File Access instructions from your prompt | Verify idempotency — retry of non-idempotent op causes duplicate state |
+| `context.WithTimeout` near `tx.Begin`/`db.BeginTx` | Full function — check rollback on context cancel | Use File Access instructions from your prompt | Context cancellation doesn't auto-rollback — transaction stays open holding connection |

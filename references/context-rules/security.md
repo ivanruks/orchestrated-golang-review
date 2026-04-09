@@ -13,3 +13,5 @@ Before analyzing diffs, read this table. When you see a trigger pattern in the d
 | `http.ListenAndServe` (not TLS) | Main/server setup | Use File Access instructions from your prompt | Check if TLS termination happens at proxy level |
 | Integer arithmetic in money/size/limit calculations | Full function | Use File Access instructions from your prompt | Integer overflow can bypass security checks |
 | `template.HTML` or `template.JS` | Full handler | Use File Access instructions from your prompt | XSS risk — unescaped user input in templates |
+| `http.Get`/`http.Post`/`http.NewRequest` with variable URL | Full handler chain — where does the URL come from? | Use File Access instructions from your prompt | SSRF — attacker can probe internal network if URL is user-controlled |
+| `http.Redirect` with variable URL | Full handler — where does redirect URL come from? | Use File Access instructions from your prompt | Open redirect — phishing via trusted domain |
