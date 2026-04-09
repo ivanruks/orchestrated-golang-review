@@ -47,6 +47,33 @@ Performance issues are typically `major`. Mark as `critical` only if the pattern
 Include estimated impact in `problem` field: "at N items, this takes X time/memory".
 `positive` array is required — note good performance patterns (pre-allocation, efficient algorithms).
 
+### Example Output
+
+```json
+{
+  "agent": "performance",
+  "files_checked": 4,
+  "findings": [
+    {
+      "id": "PERF-1",
+      "severity": "major",
+      "title": "SQL query inside loop — N+1 problem",
+      "file": "internal/repository/order.go",
+      "line": 67,
+      "category": "I/O and Database",
+      "problem": "db.Query called per order item inside for loop. With 500 items per order, this is 500 DB round-trips (~50ms each) = 25s per request.",
+      "code_before": "for _, item := range order.Items {\n    row := db.QueryRow(\"SELECT price FROM products WHERE id = $1\", item.ProductID)\n}",
+      "code_after": "rows, err := db.Query(\"SELECT id, price FROM products WHERE id = ANY($1)\", pq.Array(productIDs))\n// single batch query",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "Slices pre-allocated with make([]T, 0, n) in all hot paths",
+    "regexp.MustCompile used at package level, not inside functions"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.

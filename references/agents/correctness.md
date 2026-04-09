@@ -47,6 +47,33 @@ Every finding MUST include `code_before` and `code_after` with working fix.
 Every finding MUST explain production impact in `problem` field.
 `positive` array is required — note what the code does well in your domain.
 
+### Example Output
+
+```json
+{
+  "agent": "correctness",
+  "files_checked": 3,
+  "findings": [
+    {
+      "id": "CORR-1",
+      "severity": "critical",
+      "title": "HTTP response body not closed on error path",
+      "file": "internal/client/api.go",
+      "line": 42,
+      "category": "Resource Leak",
+      "problem": "resp.Body not closed when status != 200. At 100 RPS, connection pool exhausted in ~30s.",
+      "code_before": "if resp.StatusCode != 200 {\n    return nil, fmt.Errorf(\"bad status: %d\", resp.StatusCode)\n}",
+      "code_after": "defer resp.Body.Close()\nif resp.StatusCode != 200 {\n    return nil, fmt.Errorf(\"bad status: %d\", resp.StatusCode)\n}",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "All SQL queries use parameterized arguments",
+    "Consistent error wrapping with %w throughout the call chain"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.

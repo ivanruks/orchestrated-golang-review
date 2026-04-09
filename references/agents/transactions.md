@@ -56,6 +56,33 @@ Transaction issues are typically `critical` (missing rollback, data corruption) 
 `problem` must describe the failure scenario: "if step 2 fails after step 1 commits, user is charged but order is not created".
 `positive` array is required — note good transaction patterns (outbox, idempotency keys, proper rollback).
 
+### Example Output
+
+```json
+{
+  "agent": "transactions",
+  "files_checked": 3,
+  "findings": [
+    {
+      "id": "TXN-1",
+      "severity": "critical",
+      "title": "Cache invalidated before DB commit",
+      "file": "internal/service/product.go",
+      "line": 89,
+      "category": "Distributed State",
+      "problem": "Redis DEL called before tx.Commit(). If commit fails, cache is empty but DB has old data — stale reads until next write.",
+      "code_before": "cache.Del(ctx, key)\nerr = tx.Commit()",
+      "code_after": "if err = tx.Commit(); err != nil {\n    return err\n}\ncache.Del(ctx, key)",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "Outbox pattern used for event publishing — no message loss on crash",
+    "All transactions use defer tx.Rollback() immediately after Begin"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.

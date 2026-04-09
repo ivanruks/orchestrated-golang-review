@@ -55,6 +55,33 @@ Security issues are typically `critical` (injection, auth bypass, data exposure)
 `problem` must describe the attack vector: "attacker can X by sending Y to endpoint Z".
 `positive` array is required — note good security practices (parameterized queries, proper auth).
 
+### Example Output
+
+```json
+{
+  "agent": "security",
+  "files_checked": 4,
+  "findings": [
+    {
+      "id": "SEC-1",
+      "severity": "critical",
+      "title": "SQL injection via string interpolation",
+      "file": "internal/repository/search.go",
+      "line": 23,
+      "category": "Injection",
+      "problem": "User search query reaches db.Query via fmt.Sprintf. Attacker can send `'; DROP TABLE users; --` as search term.",
+      "code_before": "query := fmt.Sprintf(\"SELECT * FROM users WHERE name LIKE '%%%s%%'\", searchTerm)\nrows, err := db.Query(query)",
+      "code_after": "rows, err := db.Query(\"SELECT * FROM users WHERE name LIKE $1\", \"%\"+searchTerm+\"%\")",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "All authentication endpoints use bcrypt for password hashing",
+    "JWT validation checks signature, expiration, and audience"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, re-examine the highest-risk file (the one handling user input or external data) once more. Zero security findings on code that processes user input is suspicious — verify you checked all injection and auth paths.

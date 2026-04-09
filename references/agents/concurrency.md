@@ -48,6 +48,33 @@ Every finding MUST include `code_before` and `code_after` with working fix.
 Every finding MUST explain production impact (e.g., "at 100 RPS, leaked goroutines will exhaust memory within ~2 hours").
 `positive` array is required.
 
+### Example Output
+
+```json
+{
+  "agent": "concurrency",
+  "files_checked": 4,
+  "findings": [
+    {
+      "id": "CONC-1",
+      "severity": "critical",
+      "title": "Goroutine launched without shutdown mechanism",
+      "file": "internal/worker/processor.go",
+      "line": 78,
+      "category": "Goroutine Leak",
+      "problem": "go func() reads from channel but has no ctx.Done() case. If producer stops, goroutine blocks forever. At 10 requests/sec creating workers, OOM in ~1 hour.",
+      "code_before": "go func() {\n    for msg := range ch {\n        process(msg)\n    }\n}()",
+      "code_after": "go func() {\n    for {\n        select {\n        case msg, ok := <-ch:\n            if !ok { return }\n            process(msg)\n        case <-ctx.Done():\n            return\n        }\n    }\n}()",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "Correct use of errgroup for goroutine lifecycle management",
+    "sync.RWMutex used appropriately for read-heavy cache access"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.

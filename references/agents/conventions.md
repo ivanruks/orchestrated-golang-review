@@ -50,6 +50,33 @@ Return JSON matching the schema in `references/agent-output-schema.json`.
 Most convention issues are `major` or `minor`. Only mark as `critical` if the violation causes real bugs (e.g., context in struct causing goroutine leak).
 `positive` array is required — acknowledge good idiomatic patterns.
 
+### Example Output
+
+```json
+{
+  "agent": "conventions",
+  "files_checked": 5,
+  "findings": [
+    {
+      "id": "CONV-1",
+      "severity": "major",
+      "title": "Error wrapped without %w verb",
+      "file": "internal/service/order.go",
+      "line": 55,
+      "category": "Error Handling",
+      "problem": "fmt.Errorf uses %v instead of %w. Callers using errors.Is(err, ErrNotFound) will get false — error chain is broken.",
+      "code_before": "return fmt.Errorf(\"fetch order: %v\", err)",
+      "code_after": "return fmt.Errorf(\"fetch order: %w\", err)",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "Context passed as first argument consistently across all handlers",
+    "Small, focused interfaces — average 2 methods per interface"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.

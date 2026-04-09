@@ -53,6 +53,33 @@ Consistency issues are typically `critical` (broken interface contract, type mis
 `problem` must explain what breaks: "handler sends int64 but service expects int — truncation on values > 2^31".
 `positive` array is required — note good consistency practices.
 
+### Example Output
+
+```json
+{
+  "agent": "consistency",
+  "files_checked": 6,
+  "findings": [
+    {
+      "id": "CONS-1",
+      "severity": "critical",
+      "title": "Type mismatch between handler and service layer",
+      "file": "internal/handler/user.go",
+      "line": 34,
+      "category": "Type Consistency",
+      "problem": "Handler passes int64 user ID but service.GetUser expects int. Truncation on values > 2^31 — user 2147483648 becomes 0.",
+      "code_before": "user, err := s.userService.GetUser(ctx, int(req.UserID))",
+      "code_after": "user, err := s.userService.GetUser(ctx, req.UserID)",
+      "requires_verification": false
+    }
+  ],
+  "positive": [
+    "JSON tags consistent with API documentation",
+    "All interface implementations verified with compile-time checks"
+  ]
+}
+```
+
 ## HALT Conditions
 
 - If no findings after checking every item in your checklist, return empty `findings` array with `positive` observations. This is valid output — do NOT fabricate findings to fill the array.
