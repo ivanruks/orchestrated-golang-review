@@ -10,7 +10,7 @@ description: 5-phase orchestration workflow for GitLab MR Go code review
 Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 - `{{project_id}}` — GitLab project path (e.g., `group/subgroup/project`)
 - `{{merge_request_iid}}` — MR numeric ID
-- `{{selected_agents}}` — list of agents to run (default: all 7)
+- `{{selected_agents}}` — list of agents to run (default: all 8)
 - `{{discussions_enabled}}` — whether to load MR discussions (default: false)
 - `{{additional_context}}` — free text context from user (may be empty)
 - `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/golang-review/2026-04-03T14-30_mr-456/`)

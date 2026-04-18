@@ -47,7 +47,7 @@
       "type": "array",
       "items": { "type": "string" },
       "maxItems": 5,
-      "description": "Unresolved questions or risk areas the agent could not fully verify from available context. Each item is either a question or a brief residual risk note. Only include when missing context blocks confidence."
+      "description": "Unresolved questions or risk areas the agent could not fully verify. Each item is either a question or a brief residual risk note. Only include when missing context or low confidence blocks a definitive assessment."
     }
   }
 }

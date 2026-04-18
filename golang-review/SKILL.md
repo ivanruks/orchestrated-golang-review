@@ -1,11 +1,11 @@
 ---
 name: golang-review
-description: Multi-agent Go code review for GitLab merge requests. Use when the user shares a GitLab MR URL and wants a comprehensive Go review. Analyzes correctness, concurrency, conventions, consistency, transactions, performance, and security using 7 specialized sub-agents. Supports selective review with --only flag and MR discussions loading with --discussions flag.
+description: Multi-agent Go code review for GitLab merge requests. Use when the user shares a GitLab MR URL and wants a comprehensive Go review. Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag and MR discussions loading with --discussions flag.
 ---
 
 # Golang Review (GitLab MR)
 
-Multi-agent Go code review system for GitLab Merge Requests. Dispatches 7 specialized sub-agents to analyze diffs and full files, then merges their findings into a unified report.
+Multi-agent Go code review system for GitLab Merge Requests. Dispatches 8 specialized sub-agents to analyze diffs and full files, then merges their findings into a unified report.
 
 ## Usage
 
@@ -22,7 +22,7 @@ https://gitlab.com/mygroup/myproject/-/merge_requests/123 --only correctness,tra
 Тикет PROJ-456: новый эндпоинт регистрации, пишет в users и audit_log.
 ```
 
-Available agents: `correctness`, `concurrency`, `conventions`, `consistency`, `transactions`, `performance`, `security`
+Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 ## Parse Input
 
@@ -38,7 +38,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `consistency`, `t
    - Split comma-separated values
    - Validate each against known agents list
    - If invalid agent name, stop and list valid names
-   - If `--only` not present, use all 7 agents
+   - If `--only` not present, use all 8 agents
 
 4. Parse `--discussions` flag: if present, set `discussions_enabled = true`. Otherwise `false`.
 

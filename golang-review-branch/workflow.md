@@ -10,7 +10,7 @@ description: 5-phase orchestration workflow for local branch Go code review
 Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 - `{{target_branch}}` — branch to compare against (e.g., `main`)
 - `{{source_branch}}` — current branch name
-- `{{selected_agents}}` — list of agents to run (default: all 7)
+- `{{selected_agents}}` — list of agents to run (default: all 8)
 - `{{additional_context}}` — free text context from user (may be empty)
 - `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/golang-review/2026-04-03T14-30_branch-feature-xyz/`)
 - `{{output_dir}}` — path to persistent output directory (e.g., `docs/review/2026-04-03T14-30_branch-feature-xyz/`)
