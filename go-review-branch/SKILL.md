@@ -1,9 +1,9 @@
 ---
-name: golang-review-branch
+name: go-review-branch
 description: Multi-agent Go code review for local branch changes vs target branch. Use when the user wants to review all committed changes on their current branch relative to a target branch (e.g., main). Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag.
 ---
 
-# Golang Review (Branch)
+# Go Review (Branch)
 
 Multi-agent Go code review for all commits on the current branch relative to a target branch. Dispatches 8 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
 
@@ -42,7 +42,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consist
 4. Capture `additional_context`: all remaining text that is not a recognized flag or flag value.
 
 5. Generate paths:
-   - `tmp_dir` = `/tmp/golang-review/<YYYY-MM-DDTHH-MM>_branch-<source_branch>/`
+   - `tmp_dir` = `/tmp/go-review/<YYYY-MM-DDTHH-MM>_branch-<source_branch>/`
    - `output_dir` = `docs/review/<YYYY-MM-DDTHH-MM>_branch-<source_branch>/`
    - Timestamp: current time, 24h format, dashes instead of colons
 

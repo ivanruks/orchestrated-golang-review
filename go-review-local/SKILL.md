@@ -1,9 +1,9 @@
 ---
-name: golang-review-local
+name: go-review-local
 description: Multi-agent Go code review for uncommitted local changes vs target branch. Use when the user wants to review their staged and unstaged (tracked) changes relative to a target branch (e.g., main) before committing. Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag.
 ---
 
-# Golang Review (Local Uncommitted)
+# Go Review (Local Uncommitted)
 
 Multi-agent Go code review for uncommitted changes (staged + unstaged, tracked files only) relative to a target branch. Dispatches 8 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
 
@@ -46,7 +46,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consist
 5. Capture `additional_context`: all remaining text that is not a recognized flag or flag value.
 
 6. Generate paths:
-   - `tmp_dir` = `/tmp/golang-review/<YYYY-MM-DDTHH-MM>_local-<source_branch>/`
+   - `tmp_dir` = `/tmp/go-review/<YYYY-MM-DDTHH-MM>_local-<source_branch>/`
    - `output_dir` = `docs/review/<YYYY-MM-DDTHH-MM>_local-<source_branch>/`
    - Timestamp: current time, 24h format, dashes instead of colons
 

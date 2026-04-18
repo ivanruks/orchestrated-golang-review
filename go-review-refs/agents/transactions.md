@@ -59,7 +59,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Transaction issues are typically `critical` (missing rollback, data corruption) or `major` (missing idempotency, partial failure).
 `problem` must describe the failure scenario: "if step 2 fails after step 1 commits, user is charged but order is not created".
 `positive` array is required — note good transaction patterns (outbox, idempotency keys, proper rollback).
@@ -106,6 +106,6 @@ You WILL need to load related files to understand the full transaction scope.
 
 ## Context Loading
 
-Read `references/context-rules/transactions.md` before starting analysis. Transaction issues are almost never visible from the diff alone — you need the full function and often the callers.
+Read `go-review-refs/context-rules/transactions.md` before starting analysis. Transaction issues are almost never visible from the diff alone — you need the full function and often the callers.
 
 Also read Wave 1 reports from `reports/` directory — correctness agent's resource leak findings often indicate transaction issues.

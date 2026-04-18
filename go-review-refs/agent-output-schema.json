@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "SubAgentReport",
-  "description": "JSON output schema for golang-review sub-agents",
+  "description": "JSON output schema for go-review sub-agents",
   "type": "object",
   "required": ["agent", "files_checked", "findings", "positive"],
   "properties": {

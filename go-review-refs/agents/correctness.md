@@ -49,7 +49,7 @@ For every `.go` file in the diff, check ALL of the following. Do not skip any ca
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Every finding MUST include exact `file` path and `line` number.
 Every finding MUST include `code_before` and `code_after` with working fix.
 Every finding MUST explain production impact in `problem` field.
@@ -96,4 +96,4 @@ Skip: `vendor/`, `*_mock.go`, `*.pb.go`, `*_generated.go`, `testdata/`, `*.gen.g
 
 ## Context Loading
 
-Read `references/context-rules/correctness.md` before starting analysis. Follow its triggers to load additional files when needed, using the File Access instructions provided in your prompt.
+Read `go-review-refs/context-rules/correctness.md` before starting analysis. Follow its triggers to load additional files when needed, using the File Access instructions provided in your prompt.

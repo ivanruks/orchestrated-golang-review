@@ -50,7 +50,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Performance issues are typically `major`. Mark as `critical` only if the pattern would cause OOM, timeout, or service degradation under normal production load.
 Include estimated impact in `problem` field: "at N items, this takes X time/memory".
 `positive` array is required — note good performance patterns (pre-allocation, efficient algorithms).
@@ -97,4 +97,4 @@ Include `*_test.go` ONLY if test has `time.Sleep` (performance anti-pattern in t
 
 ## Context Loading
 
-Read `references/context-rules/performance.md` before starting analysis. Follow its triggers to estimate data sizes and identify hot paths.
+Read `go-review-refs/context-rules/performance.md` before starting analysis. Follow its triggers to estimate data sizes and identify hot paths.

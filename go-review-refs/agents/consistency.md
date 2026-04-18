@@ -63,7 +63,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Consistency issues are typically `critical` (broken interface contract, type mismatch causing data loss) or `major` (missing propagation, incomplete rename).
 `problem` must explain what breaks: "handler sends int64 but service expects int — truncation on values > 2^31".
 `positive` array is required — note good consistency practices.
@@ -110,6 +110,6 @@ You WILL need to load files not in the diff — this is expected for consistency
 
 ## Context Loading
 
-Read `references/context-rules/consistency.md` before starting analysis. You will almost always need to load additional files to trace call chains, using the File Access instructions provided in your prompt.
+Read `go-review-refs/context-rules/consistency.md` before starting analysis. You will almost always need to load additional files to trace call chains, using the File Access instructions provided in your prompt.
 
 Also read Wave 1 reports from `reports/` directory to avoid duplicating findings and to use their context (e.g., correctness agent found a nil issue — check if it propagates through the flow).

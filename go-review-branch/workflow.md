@@ -1,20 +1,19 @@
 ---
-name: golang-review-workflow
-description: 5-phase orchestration workflow for GitLab MR Go code review
+name: go-review-branch-workflow
+description: 5-phase orchestration workflow for local branch Go code review
 ---
 
-# Golang Review Workflow — GitLab MR
+# Golang Review Workflow — Branch
 
 ## Prerequisites
 
 Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
-- `{{project_id}}` — GitLab project path (e.g., `group/subgroup/project`)
-- `{{merge_request_iid}}` — MR numeric ID
+- `{{target_branch}}` — branch to compare against (e.g., `main`)
+- `{{source_branch}}` — current branch name
 - `{{selected_agents}}` — list of agents to run (default: all 8)
-- `{{discussions_enabled}}` — whether to load MR discussions (default: false)
 - `{{additional_context}}` — free text context from user (may be empty)
-- `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/golang-review/2026-04-03T14-30_mr-456/`)
-- `{{output_dir}}` — path to persistent output directory (e.g., `docs/review/2026-04-03T14-30_mr-456/`)
+- `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/go-review/2026-04-03T14-30_branch-feature-xyz/`)
+- `{{output_dir}}` — path to persistent output directory (e.g., `docs/review/2026-04-03T14-30_branch-feature-xyz/`)
 
 ## Constants
 
@@ -34,81 +33,69 @@ AGENT_PREFIXES = {
 }
 
 EXCLUDED_FILE_PATTERNS = ["^vendor/", "_mock\\.go$", "\\.pb\\.go$", "_generated\\.go$", "^testdata/", "\\.gen\\.go$"]
-MAX_FILES_TO_FETCH = 20
 ```
 
 ---
 
-## Phase 1: Fetch from GitLab
+## Phase 1: Fetch from Local Git
 
-Goal: Download MR data from GitLab and save to `{{tmp_dir}}`.
+Goal: Generate diffs from local git and save to `{{tmp_dir}}`.
 
 ### Step 1.1 — Create directories
 
 ```bash
 mkdir -p {{tmp_dir}}/diffs
-mkdir -p {{tmp_dir}}/files
 mkdir -p {{output_dir}}/reports
 ```
 
-### Step 1.2 — Get MR metadata
+### Step 1.2 — Determine repo root
 
+```bash
+repo_root=$(git rev-parse --show-toplevel)
 ```
-CallMcpTool(server: "user-gitlab", toolName: "get_merge_request",
-  arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
+
+### Step 1.3 — Get commit log for description
+
+```bash
+git log {{target_branch}}..HEAD --format="%h %s" --no-merges
 ```
 
-Extract from response: title, description, author.username, source_branch, target_branch.
-
-### Step 1.3 — Get discussions (optional)
-
-If `{{discussions_enabled}}` is true:
-```
-CallMcpTool(server: "user-gitlab", toolName: "mr_discussions",
-  arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
-```
-Save response as `existing_discussions`.
-
-If `{{discussions_enabled}}` is false: set `existing_discussions = []`.
+Save output as `commit_log` for metadata.
 
 ### Step 1.4 — Get diffs
 
-```
-CallMcpTool(server: "user-gitlab", toolName: "get_merge_request_diffs",
-  arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
+```bash
+git diff {{target_branch}}..HEAD -- '*.go'
 ```
 
-For each diff entry where `new_path` ends with `.go` and does NOT match any EXCLUDED_FILE_PATTERNS:
-- Save diff content to `{{tmp_dir}}/diffs/<path-with-dashes>.diff`
-  (replace `/` with `-` in path, e.g., `internal/service/user.go` → `internal-service-user.go.diff`)
+From the combined diff output:
+- Split into per-file diffs
+- Exclude files matching EXCLUDED_FILE_PATTERNS
+- Save each file's diff to `{{tmp_dir}}/diffs/<path-with-dashes>.diff`
+  (replace `/` with `-` in path)
 - Track: file path, lines added, lines removed
 
-If no `.go` files in diff, stop and report: "No Go files changed in this MR."
+If no `.go` files in diff, stop and report: "No Go files changed between `{{source_branch}}` and `{{target_branch}}`."
 
-### Step 1.5 — Get full file contents
+### Step 1.5 — Get author
 
-For each `.go` file from step 1.4, ordered by diff size (largest first), up to MAX_FILES_TO_FETCH:
-
+```bash
+git config user.name
 ```
-CallMcpTool(server: "user-gitlab", toolName: "get_file_contents",
-  arguments: {project_id: "{{project_id}}", file_path: "<file path>", ref: "{{source_branch}}"})
-```
-
-Save to `{{tmp_dir}}/files/<original path>` preserving directory structure.
 
 ### Step 1.6 — Write metadata.json
 
 Save to `{{tmp_dir}}/metadata.json`:
 ```json
 {
-  "title": "MR !{{merge_request_iid}}: <title from response>",
-  "author": "<author.username from response>",
-  "source_branch": "<source_branch from response>",
-  "target_branch": "<target_branch from response>",
-  "description": "<description from response>",
-  "url": "<original MR URL>",
+  "title": "Branch {{source_branch}} vs {{target_branch}}",
+  "author": "<git config user.name>",
+  "source_branch": "{{source_branch}}",
+  "target_branch": "{{target_branch}}",
+  "description": "<commit_log from step 1.3>",
+  "url": "",
   "fetched_at": "<current ISO timestamp>",
-  "existing_discussions": <discussions array or []>,
+  "existing_discussions": [],
   "additional_context": "{{additional_context}}"
 }
 ```
@@ -117,10 +104,10 @@ Save to `{{tmp_dir}}/metadata.json`:
 
 Output to user:
 ```
-Fetched MR !{{merge_request_iid}}: <title>
-  Author: <author> · <source_branch> → <target_branch>
+Review: {{source_branch}} vs {{target_branch}}
+  Author: <author>
   Files: <N> .go files (<lines_added>+ / <lines_removed>-)
-  Discussions: <N> existing (or "disabled")
+  Commits: <N>
   Agents: {{selected_agents}}
   Launching Wave 1...
 ```
@@ -140,28 +127,24 @@ Each agent prompt is constructed as follows:
 ```
 You are the {agent_name} review agent.
 
-{contents of references/agents/{agent_name}.md}
+{contents of go-review-refs/agents/{agent_name}.md}
 
 ## Input
 
-Metadata (including existing discussions to NOT duplicate): {{tmp_dir}}/metadata.json
+Metadata: {{tmp_dir}}/metadata.json
 Diffs: {{tmp_dir}}/diffs/
 Output directory for your report: {{output_dir}}/reports/
 
 ## File Access
 
-Full files are in {{tmp_dir}}/files/.
-If a file you need is not there, fetch it via GitLab MCP:
-  CallMcpTool(server: "user-gitlab", toolName: "get_file_contents",
-    arguments: {project_id: "{{project_id}}", file_path: "<path>", ref: "{{source_branch}}"})
-To search for files in the repository:
-  CallMcpTool(server: "user-gitlab", toolName: "get_repository_tree",
-    arguments: {project_id: "{{project_id}}", ref: "{{source_branch}}", path: "<dir>", recursive: true})
-Load references/operations.md if you need to find other MCP operations.
+Read files directly from the repository at: {{repo_root}}/<file_path>
+Use the Read tool with absolute paths. For example, to read internal/service/user.go:
+  Read {{repo_root}}/internal/service/user.go
+To search for files, use the Glob or Grep tools on {{repo_root}}.
 
 ## Context Rules
 
-{contents of references/context-rules/{agent_name}.md}
+{contents of go-review-refs/context-rules/{agent_name}.md}
 
 ## Task Context (provided by author)
 
@@ -169,20 +152,19 @@ Load references/operations.md if you need to find other MCP operations.
 
 ## Output Schema
 
-{contents of references/agent-output-schema.json}
+{contents of go-review-refs/agent-output-schema.json}
 
 ## Instructions
 
-1. Read metadata.json to understand the MR context and existing discussions.
+1. Read metadata.json to understand the review context.
 2. Read each .diff file in diffs/ directory.
-3. For each diff, read the corresponding full file from files/ directory.
+3. For each diff, read the corresponding full file using File Access instructions above.
 4. Before applying your checklist, summarize internally: what changed, why, and what is the main execution path affected. This grounds your analysis.
 5. Apply your checklist to every file.
 6. When your context-rules trigger, load additional files using File Access instructions above.
-7. Do NOT duplicate findings from existing_discussions in metadata.json.
-8. **IMPORTANT: Write your JSON report to disk** using the Write tool at {{output_dir}}/reports/{agent_name}.json
+7. **IMPORTANT: Write your JSON report to disk** using the Write tool at {{output_dir}}/reports/{agent_name}.json
    The file MUST persist on the filesystem after you finish. Do not just return the JSON — it must be saved to disk.
-9. Return the JSON report content as well (for the orchestrator to use immediately).
+8. Return the JSON report content as well (for the orchestrator to use immediately).
 ```
 
 Wait for ALL Wave 1 agents to complete before proceeding to Phase 3.
@@ -280,12 +262,12 @@ Goal: Render the final markdown report and present to user.
 
 ### Step 5.1 — Load template
 
-Read `references/report-format.md`.
+Read `go-review-refs/report-format.md`.
 
 ### Step 5.2 — Render
 
 Fill the template with:
-- MR metadata from `{{tmp_dir}}/metadata.json`
+- Metadata from `{{tmp_dir}}/metadata.json`
 - Statistics from Phase 4
 - Grouped findings from Phase 4
 - Merged positive findings
@@ -305,8 +287,8 @@ Display the full final report to the user.
 
 ## Error Handling
 
-- If GitLab MCP is unavailable during Phase 1, stop and report the error to the user.
-- If no `.go` files in the diff, report "No Go files changed in this MR" and stop.
+- If target branch does not exist, stop and report the error to the user (should be caught by SKILL.md).
+- If no `.go` files in the diff, report "No Go files changed between {{source_branch}} and {{target_branch}}" and stop.
 - If a sub-agent fails (timeout, error), log the failure and continue with remaining agents.
   Add a note to the final report: "Agent {name} failed: {reason}. Its category was not reviewed."
 - If all Wave 1 agents fail, stop and report the error. Do not launch Wave 2.
@@ -322,6 +304,6 @@ All reports must be preserved:
 - `reports/` — individual agent JSON reports for debugging/comparison
 - `final-report.md` — the rendered report
 
-Temporary files in `{{tmp_dir}}` (metadata.json, diffs/, files/) will be cleaned up by the OS.
+Temporary files in `{{tmp_dir}}` (metadata.json, diffs/) will be cleaned up by the OS.
 
 **Important for sub-agents:** When writing reports to `reports/`, use the Write tool to create the file. Do NOT use temporary storage — the JSON report must persist on disk at `{{output_dir}}/reports/{agent_name}.json`.

@@ -58,7 +58,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Security issues are typically `critical` (injection, auth bypass, data exposure) or `major` (weak crypto, missing validation).
 `problem` must describe the attack vector: "attacker can X by sending Y to endpoint Z".
 `positive` array is required — note good security practices (parameterized queries, proper auth).
@@ -104,4 +104,4 @@ Skip: `vendor/`, `*_mock.go`, `*.pb.go`, `*_generated.go`, `testdata/`, `*.gen.g
 
 ## Context Loading
 
-Read `references/context-rules/security.md` before starting analysis. Trace user input from HTTP handler through service layer to DB/exec to find injection paths.
+Read `go-review-refs/context-rules/security.md` before starting analysis. Trace user input from HTTP handler through service layer to DB/exec to find injection paths.

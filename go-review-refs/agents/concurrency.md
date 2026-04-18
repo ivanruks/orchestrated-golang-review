@@ -50,7 +50,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Every finding MUST include exact `file` path and `line` number.
 Every finding MUST include `code_before` and `code_after` with working fix.
 Every finding MUST explain production impact (e.g., "at 100 RPS, leaked goroutines will exhaust memory within ~2 hours").
@@ -98,4 +98,4 @@ Include `*_test.go` ONLY if the test itself has a concurrency bug (e.g., race in
 
 ## Context Loading
 
-Read `references/context-rules/concurrency.md` before starting analysis. Follow its triggers. Check go.mod for Go version — loop variable capture is only a bug pre-Go 1.22.
+Read `go-review-refs/context-rules/concurrency.md` before starting analysis. Follow its triggers. Check go.mod for Go version — loop variable capture is only a bug pre-Go 1.22.

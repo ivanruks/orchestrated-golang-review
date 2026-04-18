@@ -47,7 +47,7 @@ For every `.go` file in the diff, check the applicable items below. The first tw
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Test adequacy issues are typically `major` (missing test for risky behavior change) or `minor` (test quality issue).
 Mark as `critical` only if a dangerous code path (data loss, security, concurrency) has zero test coverage.
 `problem` must describe the regression risk: "if {function} is broken by a future change, no test would catch it — {concrete failure scenario}".
@@ -96,4 +96,4 @@ You WILL need to load `*_test.go` files that correspond to changed implementatio
 
 ## Context Loading
 
-Read `references/context-rules/tests.md` before starting analysis. Follow its triggers to find and load test files corresponding to changed code.
+Read `go-review-refs/context-rules/tests.md` before starting analysis. Follow its triggers to find and load test files corresponding to changed code.

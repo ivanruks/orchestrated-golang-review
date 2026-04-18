@@ -13,11 +13,11 @@ User
     |
     |  Three entry points
     |
-    +--- GitLab MR URL -------> golang-review/SKILL.md
+    +--- GitLab MR URL -------> go-review/SKILL.md
     |                               |
-    +--- target branch name --> golang-review-branch/SKILL.md
+    +--- target branch name --> go-review-branch/SKILL.md
     |                               |
-    +--- target branch name --> golang-review-local/SKILL.md
+    +--- target branch name --> go-review-local/SKILL.md
                                     |
                                     v
                             +------------------+
@@ -31,9 +31,9 @@ User
     (skill-specific)         (shared logic)               (shared logic)
          |                          |                           |
          v                          v                           v
-    tmp_dir (/tmp/...)     references/agents/*.md         output_dir (docs/review/...)
-    - metadata.json        references/context-rules/      - reports/*.json
-    - diffs/               references/agent-output-        - final-report.md
+    tmp_dir (/tmp/...)     go-review-refs/agents/*.md         output_dir (docs/review/...)
+    - metadata.json        go-review-refs/context-rules/      - reports/*.json
+    - diffs/               go-review-refs/agent-output-        - final-report.md
     - files/ (GitLab only)   schema.json
 
 +------------------------------------------------------------------+
@@ -77,7 +77,7 @@ User
 
 ## Skills
 
-### golang-review -- GitLab MR
+### go-review -- GitLab MR
 
 Reviews a GitLab Merge Request. Fetches diffs and full files from GitLab via MCP.
 
@@ -94,7 +94,7 @@ Flags:
 - `--discussions` -- load existing MR discussions so agents avoid duplicating them
 - Free text after the URL/flags is passed to agents as `additional_context`
 
-### golang-review-branch -- Committed Branch Changes
+### go-review-branch -- Committed Branch Changes
 
 Reviews all commits on the current branch relative to a target branch (`git diff target..HEAD`).
 
@@ -109,7 +109,7 @@ Flags:
 - `--only agent1,agent2,...` -- run only the specified agents
 - Free text after the target branch/flags is passed to agents as `additional_context`
 
-### golang-review-local -- Uncommitted Local Changes
+### go-review-local -- Uncommitted Local Changes
 
 Reviews uncommitted changes (staged + unstaged, tracked files only) relative to a target branch (`git diff target`).
 
@@ -135,17 +135,17 @@ When `--only` is used, the final report includes a note indicating a partial rev
 ## File Structure
 
 ```
-orchestrated-golang-review/
-├── golang-review/                     # Skill: GitLab MR review
+orchestrated-go-review/
+├── go-review/                     # Skill: GitLab MR review
 │   ├── SKILL.md                       #   Entry point: URL parsing, flag parsing, path generation
 │   └── workflow.md                    #   Monolithic 5-phase workflow (fetches from GitLab MCP)
-├── golang-review-branch/              # Skill: committed branch changes review
+├── go-review-branch/              # Skill: committed branch changes review
 │   ├── SKILL.md                       #   Entry point: target branch validation, path generation
 │   └── workflow.md                    #   Monolithic 5-phase workflow (diffs from git)
-├── golang-review-local/               # Skill: uncommitted local changes review
+├── go-review-local/               # Skill: uncommitted local changes review
 │   ├── SKILL.md                       #   Entry point: target branch validation, uncommitted check
 │   └── workflow.md                    #   Monolithic 5-phase workflow (diffs from git working tree)
-├── references/                        # Shared resources used by all three skills
+├── go-review-refs/                        # Shared resources used by all three skills
 │   ├── agents/                        #   Sub-agent prompts
 │   │   ├── correctness.md             #     Bugs, resource leaks, panics
 │   │   ├── concurrency.md             #     Races, deadlocks, goroutine leaks
@@ -200,11 +200,11 @@ Each skill runs 5 phases sequentially. Phase 1 is skill-specific; Phases 2-5 are
 
 | Skill | Source | What it creates |
 |-------|--------|----------------|
-| **golang-review** | GitLab MCP (`get_merge_request`, `get_merge_request_diffs`, `get_file_contents`, optionally `mr_discussions`) | `tmp_dir/metadata.json`, `tmp_dir/diffs/`, `tmp_dir/files/` |
-| **golang-review-branch** | `git diff target..HEAD -- '*.go'` | `tmp_dir/metadata.json`, `tmp_dir/diffs/` |
-| **golang-review-local** | `git diff target -- '*.go'` | `tmp_dir/metadata.json`, `tmp_dir/diffs/` |
+| **go-review** | GitLab MCP (`get_merge_request`, `get_merge_request_diffs`, `get_file_contents`, optionally `mr_discussions`) | `tmp_dir/metadata.json`, `tmp_dir/diffs/`, `tmp_dir/files/` |
+| **go-review-branch** | `git diff target..HEAD -- '*.go'` | `tmp_dir/metadata.json`, `tmp_dir/diffs/` |
+| **go-review-local** | `git diff target -- '*.go'` | `tmp_dir/metadata.json`, `tmp_dir/diffs/` |
 
-Working data goes to `tmp_dir` (`/tmp/golang-review/...`), which is ephemeral. The `output_dir` (`docs/review/...`) is created for persistent results only.
+Working data goes to `tmp_dir` (`/tmp/go-review/...`), which is ephemeral. The `output_dir` (`docs/review/...`) is created for persistent results only.
 
 File filtering applies to all skills: `.go` files only, excluding `vendor/`, `*_mock.go`, `*.pb.go`, `*_generated.go`, `testdata/`, `*.gen.go`. The GitLab skill fetches up to 20 full files sorted by diff size (largest first).
 
@@ -231,18 +231,18 @@ Combine all agent results:
 
 ### Phase 5: Report
 
-Render the final Markdown report using the template from `references/report-format.md`, save to `output_dir/final-report.md`, display to user.
+Render the final Markdown report using the template from `go-review-refs/report-format.md`, save to `output_dir/final-report.md`, display to user.
 
 ---
 
 ## Directory Layout at Runtime
 
-### tmp_dir (ephemeral: /tmp/golang-review/...)
+### tmp_dir (ephemeral: /tmp/go-review/...)
 
 ```
-/tmp/golang-review/2026-04-03T14-30_mr-456/       # GitLab MR
-/tmp/golang-review/2026-04-03T14-30_branch-feat/   # Branch review
-/tmp/golang-review/2026-04-03T14-30_local-feat/    # Local review
+/tmp/go-review/2026-04-03T14-30_mr-456/       # GitLab MR
+/tmp/go-review/2026-04-03T14-30_branch-feat/   # Branch review
+/tmp/go-review/2026-04-03T14-30_local-feat/    # Local review
     ├── metadata.json          # Review metadata: title, author, branches, discussions, additional_context
     ├── diffs/                 # Per-file diffs (.go files, / replaced with -)
     │   ├── internal-service-user.go.diff
@@ -275,7 +275,7 @@ docs/review/2026-04-03T14-30_mr-456/
 
 ## Inter-Agent JSON Schema
 
-Each sub-agent returns JSON in the following format (`references/agent-output-schema.json`):
+Each sub-agent returns JSON in the following format (`go-review-refs/agent-output-schema.json`):
 
 ```json
 {
@@ -330,7 +330,7 @@ Each sub-agent returns JSON in the following format (`references/agent-output-sc
 
 ## Final Report Format
 
-The report is rendered using the template from `references/report-format.md` and includes:
+The report is rendered using the template from `go-review-refs/report-format.md` and includes:
 
 1. **Header** -- title, author, branches
 2. **Overview** -- brief description of changes and their purpose
@@ -355,7 +355,7 @@ Findings with `requires_verification: true` are marked with "(requires verificat
 
 ## Context Rules
 
-Each agent has its own set of triggers in `references/context-rules/<agent>.md`. A trigger is a pattern in the diff that, when detected, tells the agent to load additional files for thorough analysis. Context rules are source-agnostic -- they reference "File Access instructions from your prompt" rather than hardcoding GitLab MCP or local file reads.
+Each agent has its own set of triggers in `go-review-refs/context-rules/<agent>.md`. A trigger is a pattern in the diff that, when detected, tells the agent to load additional files for thorough analysis. Context rules are source-agnostic -- they reference "File Access instructions from your prompt" rather than hardcoding GitLab MCP or local file reads.
 
 ### Loading algorithm
 
@@ -378,7 +378,7 @@ Each agent has its own set of triggers in `references/context-rules/<agent>.md`.
 
 ## Error Handling
 
-- **GitLab MCP unavailable** (golang-review only): review stops with an error message
+- **GitLab MCP unavailable** (go-review only): review stops with an error message
 - **Target branch not found** (branch/local skills): review stops with an error message
 - **No `.go` files** in the diff: review stops with an appropriate message
 - **Sub-agent failure** (timeout, error): review continues with remaining agents; a note is added to the report

@@ -1,5 +1,5 @@
 ---
-name: golang-review-local-workflow
+name: go-review-local-workflow
 description: 5-phase orchestration workflow for uncommitted Go code review
 ---
 
@@ -12,7 +12,7 @@ Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 - `{{source_branch}}` — current branch name
 - `{{selected_agents}}` — list of agents to run (default: all 8)
 - `{{additional_context}}` — free text context from user (may be empty)
-- `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/golang-review/2026-04-03T14-30_local-feature-xyz/`)
+- `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/go-review/2026-04-03T14-30_local-feature-xyz/`)
 - `{{output_dir}}` — path to persistent output directory (e.g., `docs/review/2026-04-03T14-30_local-feature-xyz/`)
 
 ## Constants
@@ -122,7 +122,7 @@ Each agent prompt is constructed as follows:
 ```
 You are the {agent_name} review agent.
 
-{contents of references/agents/{agent_name}.md}
+{contents of go-review-refs/agents/{agent_name}.md}
 
 ## Input
 
@@ -139,7 +139,7 @@ To search for files, use the Glob or Grep tools on {{repo_root}}.
 
 ## Context Rules
 
-{contents of references/context-rules/{agent_name}.md}
+{contents of go-review-refs/context-rules/{agent_name}.md}
 
 ## Task Context (provided by author)
 
@@ -147,7 +147,7 @@ To search for files, use the Glob or Grep tools on {{repo_root}}.
 
 ## Output Schema
 
-{contents of references/agent-output-schema.json}
+{contents of go-review-refs/agent-output-schema.json}
 
 ## Instructions
 
@@ -257,7 +257,7 @@ Goal: Render the final markdown report and present to user.
 
 ### Step 5.1 — Load template
 
-Read `references/report-format.md`.
+Read `go-review-refs/report-format.md`.
 
 ### Step 5.2 — Render
 

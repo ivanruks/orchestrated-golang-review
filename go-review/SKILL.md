@@ -1,9 +1,9 @@
 ---
-name: golang-review
+name: go-review
 description: Multi-agent Go code review for GitLab merge requests. Use when the user shares a GitLab MR URL and wants a comprehensive Go review. Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag and MR discussions loading with --discussions flag.
 ---
 
-# Golang Review (GitLab MR)
+# Go Review (GitLab MR)
 
 Multi-agent Go code review system for GitLab Merge Requests. Dispatches 8 specialized sub-agents to analyze diffs and full files, then merges their findings into a unified report.
 
@@ -45,7 +45,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consist
 5. Capture `additional_context`: all remaining text that is not a recognized URL, flag, or flag value.
 
 6. Generate paths:
-   - `tmp_dir` = `/tmp/golang-review/<YYYY-MM-DDTHH-MM>_mr-<iid>/`
+   - `tmp_dir` = `/tmp/go-review/<YYYY-MM-DDTHH-MM>_mr-<iid>/`
    - `output_dir` = `docs/review/<YYYY-MM-DDTHH-MM>_mr-<iid>/`
    - Timestamp: current time, 24h format, dashes instead of colons
 
@@ -64,4 +64,4 @@ Load and follow `workflow.md` (in the same directory as this SKILL.md) with the 
 ## GitLab MCP
 
 This skill uses GitLab MCP server `user-gitlab` for all GitLab API operations.
-Load `references/operations.md` when you need to find the right MCP operation.
+Load `go-review-refs/operations.md` when you need to find the right MCP operation.

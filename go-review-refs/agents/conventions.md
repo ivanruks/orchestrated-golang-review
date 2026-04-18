@@ -55,7 +55,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ## Output
 
-Return JSON matching the schema in `references/agent-output-schema.json`.
+Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
 Most convention issues are `major` or `minor`. Only mark as `critical` if the violation causes real bugs (e.g., context in struct causing goroutine leak).
 `positive` array is required — acknowledge good idiomatic patterns.
 
@@ -100,4 +100,4 @@ Do NOT nitpick issues that `golangci-lint` would catch (formatting, unused impor
 
 ## Context Loading
 
-Read `references/context-rules/conventions.md` before starting analysis. Follow its triggers.
+Read `go-review-refs/context-rules/conventions.md` before starting analysis. Follow its triggers.
