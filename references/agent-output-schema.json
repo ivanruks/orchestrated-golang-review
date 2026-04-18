@@ -7,7 +7,7 @@
   "properties": {
     "agent": {
       "type": "string",
-      "enum": ["correctness", "concurrency", "conventions", "performance", "security", "consistency", "transactions"]
+      "enum": ["correctness", "concurrency", "conventions", "performance", "security", "consistency", "transactions", "tests"]
     },
     "files_checked": {
       "type": "integer",
@@ -21,7 +21,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^(CORR|CONC|CONV|PERF|SEC|CONS|TXN)-[0-9]+$"
+            "pattern": "^(CORR|CONC|CONV|PERF|SEC|CONS|TXN|TEST)-[0-9]+$"
           },
           "severity": {
             "type": "string",
@@ -42,6 +42,12 @@
       "type": "array",
       "items": { "type": "string" },
       "minItems": 1
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 5,
+      "description": "Unresolved questions or risk areas the agent could not fully verify from available context. Each item is either a question or a brief residual risk note. Only include when missing context blocks confidence."
     }
   }
 }

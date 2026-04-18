@@ -18,7 +18,7 @@ Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 ## Constants
 
 ```
-WAVE_1_AGENTS = [correctness, concurrency, conventions, performance, security]
+WAVE_1_AGENTS = [correctness, concurrency, conventions, performance, security, tests]
 WAVE_2_AGENTS = [consistency, transactions]
 
 AGENT_PREFIXES = {
@@ -27,6 +27,7 @@ AGENT_PREFIXES = {
   conventions: "CONV",
   performance: "PERF",
   security: "SEC",
+  tests: "TEST",
   consistency: "CONS",
   transactions: "TXN"
 }
@@ -153,11 +154,12 @@ To search for files, use the Glob or Grep tools on {{repo_root}}.
 1. Read metadata.json to understand the review context.
 2. Read each .diff file in diffs/ directory.
 3. For each diff, read the corresponding full file using File Access instructions above.
-4. Apply your checklist to every file.
-5. When your context-rules trigger, load additional files using File Access instructions above.
-6. **IMPORTANT: Write your JSON report to disk** using the Write tool at {{output_dir}}/reports/{agent_name}.json
+4. Before applying your checklist, summarize internally: what changed, why, and what is the main execution path affected. This grounds your analysis.
+5. Apply your checklist to every file.
+6. When your context-rules trigger, load additional files using File Access instructions above.
+7. **IMPORTANT: Write your JSON report to disk** using the Write tool at {{output_dir}}/reports/{agent_name}.json
    The file MUST persist on the filesystem after you finish. Do not just return the JSON — it must be saved to disk.
-7. Return the JSON report content as well (for the orchestrator to use immediately).
+8. Return the JSON report content as well (for the orchestrator to use immediately).
 ```
 
 Wait for ALL Wave 1 agents to complete before proceeding to Phase 3.
@@ -208,13 +210,22 @@ For each pair of findings from different agents:
     - conventions > correctness (for error handling style — missing %w, error string format)
     - concurrency > performance (for lock contention — deadlock risk outweighs perf concern)
     - concurrency > correctness (for context cancellation leaks — goroutine lifecycle is root cause)
+    - tests > correctness (for missing test coverage — tests agent is more specific about what's missing)
+    - tests > conventions (for test quality — tests agent owns test patterns)
   - If neither is more specialized, keep both (different perspectives are valuable)
+
+#### Dedup Rules (Strip / Preserve)
+
+- **Strip:** Duplicate finding on same file:line from lower-priority agent — remove the lower-priority one.
+- **Preserve:** Keep both findings if they describe different failure modes on the same line, even from different agents.
+- **Positive merge:** Deduplicate semantically similar positives; keep the more specific phrasing.
+- **Open questions merge:** Union all; deduplicate by meaning; cap at 10 total.
 
 ### Step 4.3 — Sort and group
 
 Group findings:
 1. First level: severity (critical → major → minor)
-2. Second level: agent category (in order: correctness, concurrency, conventions, consistency, transactions, performance, security)
+2. Second level: agent category (in order: correctness, concurrency, conventions, tests, consistency, transactions, performance, security)
 
 ### Step 4.4 — Compute statistics
 
@@ -232,7 +243,11 @@ Group findings:
 
 ### Step 4.5 — Merge positive findings
 
-Collect all `positive` arrays from all agents. Deduplicate similar observations. Keep as bullet list.
+Collect all `positive` arrays from all agents. Deduplicate semantically similar observations; keep the more specific phrasing. Keep as bullet list.
+
+### Step 4.6 — Merge open questions
+
+Collect all `open_questions` arrays from all agents. Deduplicate by meaning. Cap at 10 total. Prefix each with the agent name.
 
 ---
 

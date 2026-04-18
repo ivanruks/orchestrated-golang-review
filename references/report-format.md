@@ -66,6 +66,16 @@ Compact format, one entry per finding:
 
 ---
 
+## Open Questions
+
+Merge `open_questions` arrays from all agent reports. Deduplicate by meaning. Cap at 10 total. Only include this section if there are open questions.
+
+For each question, prefix with the agent name:
+
+- **[{agent}]** {question or residual risk note}
+
+---
+
 ## What Was Done Well
 
 Merge `positive` arrays from all agent reports. Deduplicate. Present as bullet list:
@@ -86,3 +96,4 @@ Notes:
 - Findings with `requires_verification: true` — append "(requires verification)" to the title
 - If `--only` was used, note which agents were included in the Summary section
 - If an agent returned 0 findings, do not create an empty section for it
+- Agent category order for grouping: correctness, concurrency, conventions, tests, consistency, transactions, performance, security
