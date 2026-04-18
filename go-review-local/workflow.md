@@ -3,7 +3,7 @@ name: go-review-local-workflow
 description: 5-phase orchestration workflow for uncommitted Go code review
 ---
 
-# Golang Review Workflow — Local Uncommitted
+# Go Review Workflow — Local Uncommitted
 
 ## Prerequisites
 

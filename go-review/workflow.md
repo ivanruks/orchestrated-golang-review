@@ -3,7 +3,7 @@ name: go-review-workflow
 description: 5-phase orchestration workflow for GitLab MR Go code review
 ---
 
-# Golang Review Workflow — GitLab MR
+# Go Review Workflow — GitLab MR
 
 ## Prerequisites
 

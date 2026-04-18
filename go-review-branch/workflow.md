@@ -3,7 +3,7 @@ name: go-review-branch-workflow
 description: 5-phase orchestration workflow for local branch Go code review
 ---
 
-# Golang Review Workflow — Branch
+# Go Review Workflow — Branch
 
 ## Prerequisites
 

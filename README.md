@@ -1,8 +1,8 @@
-# Golang Review -- Multi-Agent Go Code Review System
+# Go Review -- Multi-Agent Go Code Review System
 
 ## Overview
 
-Golang Review is a set of three Claude Code skills that automate code review for Go code. Each skill targets a different source: GitLab Merge Requests, committed branch changes, or uncommitted local changes. All three dispatch 7 specialized sub-agents (correctness, concurrency, conventions, consistency, transactions, performance, security), each analyzing diffs and full files against its own checklist. Agents run in two waves: Wave 1 launches 5 agents in parallel, then Wave 2 launches 2 agents that receive Wave 1 findings as additional context. All results are merged, deduplicated, and rendered into a unified report with a verdict (LGTM / REQUEST CHANGES / REJECT).
+Go Review is a set of three Claude Code skills that automate code review for Go code. Each skill targets a different source: GitLab Merge Requests, committed branch changes, or uncommitted local changes. All three dispatch 8 specialized sub-agents (correctness, concurrency, conventions, tests, consistency, transactions, performance, security), each analyzing diffs and full files against its own checklist. Agents run in two waves: Wave 1 launches 6 agents in parallel, then Wave 2 launches 2 agents that receive Wave 1 findings as additional context. All results are merged, deduplicated, and rendered into a unified report with a verdict (LGTM / REQUEST CHANGES / REJECT).
 
 ---
 
@@ -44,10 +44,10 @@ User
 |  |   (CORR)    | |   (CONC)    | |   (CONV)    | |  (PERF)   |  |
 |  +-------------+ +-------------+ +-------------+ +-----------+  |
 |                                                                  |
-|  +-------------+                                                 |
-|  |  security   |                                                 |
-|  |   (SEC)     |                                                 |
-|  +-------------+                                                 |
+|  +-------------+ +-------------+                                 |
+|  |  security   | |    tests    |                                 |
+|  |   (SEC)     | |   (TEST)   |                                 |
+|  +-------------+ +-------------+                                 |
 +------------------------------------------------------------------+
     |
     |  All Wave 1 agents complete, JSON reports saved
@@ -126,7 +126,7 @@ Flags:
 
 ### Available Agents
 
-`correctness`, `concurrency`, `conventions`, `consistency`, `transactions`, `performance`, `security`
+`correctness`, `concurrency`, `conventions`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 When `--only` is used, the final report includes a note indicating a partial review.
 
@@ -150,6 +150,7 @@ orchestrated-go-review/
 │   │   ├── correctness.md             #     Bugs, resource leaks, panics
 │   │   ├── concurrency.md             #     Races, deadlocks, goroutine leaks
 │   │   ├── conventions.md             #     Idiomatic Go patterns
+│   │   ├── tests.md                   #     Test adequacy, missing coverage
 │   │   ├── consistency.md             #     Data flow integrity (Wave 2)
 │   │   ├── transactions.md            #     Atomicity, idempotency (Wave 2)
 │   │   ├── performance.md             #     O(n^2), allocations, N+1
@@ -158,6 +159,7 @@ orchestrated-go-review/
 │   │   ├── correctness.md
 │   │   ├── concurrency.md
 │   │   ├── conventions.md
+│   │   ├── tests.md
 │   │   ├── consistency.md
 │   │   ├── transactions.md
 │   │   ├── performance.md
@@ -183,6 +185,7 @@ orchestrated-go-review/
 | **conventions** | `CONV` | 1 | Idiomatic Go patterns | `fmt.Errorf` without `%w`, context in struct field, functions >60 lines, naming, godoc |
 | **performance** | `PERF` | 1 | Performance and allocations | O(n^2) in hot paths, `append` without pre-allocation, SQL in loop (N+1), `regexp.Compile` inside function body |
 | **security** | `SEC` | 1 | Security vulnerabilities | SQL/command injection, path traversal, hardcoded credentials, `math/rand` for secrets, PII leaks in logs |
+| **tests** | `TEST` | 1 | Test adequacy and coverage gaps | Missing tests for new error paths, outdated assertions after behavior change, untested concurrent/tx paths |
 | **consistency** | `CONS` | 2 | Data flow integrity across layers | Type mismatches between layers, broken interface contracts, incomplete renames, API incompatibility |
 | **transactions** | `TXN` | 2 | Atomicity, transactions, idempotency | `tx.Begin` without `defer tx.Rollback`, partial failure, missing idempotency, cache invalidation before commit |
 
@@ -210,7 +213,7 @@ File filtering applies to all skills: `.go` files only, excluding `vendor/`, `*_
 
 ### Phase 2: Wave 1
 
-Parallel launch of 5 agents: `correctness`, `concurrency`, `conventions`, `performance`, `security`. Each agent:
+Parallel launch of 6 agents: `correctness`, `concurrency`, `conventions`, `performance`, `security`, `tests`. Each agent:
 - Reads metadata and diffs from `tmp_dir`
 - Accesses full source files (GitLab skill: from `tmp_dir/files/` or via MCP; local skills: directly from the repo)
 - Loads additional files when context-rules triggers fire
@@ -264,6 +267,7 @@ docs/review/2026-04-03T14-30_mr-456/
     │   ├── correctness.json
     │   ├── concurrency.json
     │   ├── conventions.json
+    │   ├── tests.json
     │   ├── performance.json
     │   ├── security.json
     │   ├── consistency.json
@@ -306,10 +310,11 @@ Each sub-agent returns JSON in the following format (`go-review-refs/agent-outpu
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `agent` | string | Agent name (one of 7 values) |
+| `agent` | string | Agent name (one of 8 values) |
 | `files_checked` | integer | Number of files analyzed |
 | `findings` | array | List of found issues |
 | `positive` | array (min 1) | What was done well -- at least one entry required |
+| `open_questions` | array (max 5, optional) | Unresolved questions or risk areas the agent could not fully verify |
 
 ### Finding fields
 
@@ -338,8 +343,9 @@ The report is rendered using the template from `go-review-refs/report-format.md`
 4. **Critical** -- detailed critical findings grouped by agent, with `code_before`/`code_after` blocks
 5. **Major** -- same structure for major findings
 6. **Minor** -- compact list, one line per finding
-7. **What Was Done Well** -- merged positive observations from all agents
-8. **Key Production Risks** -- production risk summary (only if critical/major findings exist)
+7. **Open Questions** -- unresolved questions and residual risks from all agents (only if present)
+8. **What Was Done Well** -- merged positive observations from all agents
+9. **Key Production Risks** -- production risk summary (only if critical/major findings exist)
 
 ### Verdict Rules
 
