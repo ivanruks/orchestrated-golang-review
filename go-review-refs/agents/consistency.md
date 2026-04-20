@@ -66,6 +66,7 @@ For every `.go` file in the diff, check ALL of the following.
 ## Output
 
 Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
+**Code snippets (JSON):** Default is **mode A**. If **any** line or small hunk from the current diff (or the cited `file`/`line` in fetched full file) suffices to show the problem, you **MUST** use mode A with non-empty `code_before` and `code_after` — do **not** use mode B to skip copying the diff. Use `code_snippet_unavailable`: `true` + `code_absence_note` (≥20 chars, English) + empty `code_before`/`code_after` **only** when no honest single-location snippet exists (cross-cutting, policy-only, missing artifact not in diff). See `go-review-refs/agent-output-schema.json` and `report-format.md` modes A/B.
 Consistency issues are typically `critical` (broken interface contract, type mismatch causing data loss) or `major` (missing propagation, incomplete rename).
 `problem` must explain what breaks: "handler sends int64 but service expects int — truncation on values > 2^31".
 `positive` array is required — note good consistency practices.

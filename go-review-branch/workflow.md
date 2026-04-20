@@ -276,6 +276,8 @@ Fill the template with:
 - Merged positive findings
 - Key production risks (summarize critical + major findings impact)
 
+**Report snippets (mandatory):** Follow `## Orchestrator contract` in `go-review-refs/report-format.md`. For each finding: if `code_snippet_unavailable` is `true`, render **Code snippet:** not applicable — `code_absence_note` only (no Before/After fences; do not reconstruct over the waiver). Otherwise render Before/After fenced Go from `code_before` / `code_after`; if either is empty or missing, **reconstruct** from `{{tmp_dir}}/diffs/` and the repository file at `file`/`line`. Do not ship mode A with empty fences, or mode B without `code_absence_note`.
+
 If `--only` was used, add a note in Summary: "Partial review: only {agents} were run."
 
 ### Step 5.3 — Save

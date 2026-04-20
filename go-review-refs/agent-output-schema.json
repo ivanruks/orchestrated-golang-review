@@ -32,10 +32,61 @@
           "line": { "type": "integer" },
           "category": { "type": "string" },
           "problem": { "type": "string" },
-          "code_before": { "type": "string" },
-          "code_after": { "type": "string" },
+          "code_before": {
+            "type": "string",
+            "description": "Problem snippet for the report Before block, or empty string when code_snippet_unavailable is true."
+          },
+          "code_after": {
+            "type": "string",
+            "description": "Suggested fix for the report After block, or empty string when code_snippet_unavailable is true."
+          },
+          "code_snippet_unavailable": {
+            "type": "boolean",
+            "description": "Set true only when no honest single-location Before/After applies (cross-cutting, policy-only, missing file not in diff, etc.). Must use empty code_before and code_after plus non-empty code_absence_note."
+          },
+          "code_absence_note": {
+            "type": "string",
+            "maxLength": 600,
+            "description": "When code_snippet_unavailable is true: short English reason why code fences are omitted (shown in final report). Omit or leave empty when code_snippet_unavailable is absent or false."
+          },
           "requires_verification": { "type": "boolean" }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "allOf": [
+                { "required": ["code_snippet_unavailable"] },
+                { "properties": { "code_snippet_unavailable": { "const": true } } }
+              ]
+            },
+            "then": {
+              "required": ["code_absence_note"],
+              "properties": {
+                "code_absence_note": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 600
+                },
+                "code_before": { "const": "" },
+                "code_after": { "const": "" }
+              }
+            },
+            "else": {
+              "properties": {
+                "code_before": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Minimal Go snippet (final report Before block)."
+                },
+                "code_after": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Concrete suggested fix (final report After block)."
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "positive": {

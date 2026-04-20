@@ -51,6 +51,7 @@ For every `.go` file in the diff, check the applicable items below. The first tw
 ## Output
 
 Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
+**Code snippets (JSON):** Default is **mode A**. If **any** line or small hunk from the current diff (or the cited `file`/`line` in fetched full file) suffices to show the problem, you **MUST** use mode A with non-empty `code_before` and `code_after` — do **not** use mode B to skip copying the diff. Use `code_snippet_unavailable`: `true` + `code_absence_note` (≥20 chars, English) + empty `code_before`/`code_after` **only** when no honest single-location snippet exists (cross-cutting, policy-only, missing artifact not in diff). See `go-review-refs/agent-output-schema.json` and `report-format.md` modes A/B.
 Test adequacy issues are typically `major` (missing test for risky behavior change) or `minor` (test quality issue).
 Mark as `critical` only if a dangerous code path (data loss, security, concurrency) has zero test coverage.
 `problem` must describe the regression risk: "if {function} is broken by a future change, no test would catch it — {concrete failure scenario}".

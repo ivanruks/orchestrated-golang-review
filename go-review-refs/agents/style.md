@@ -57,6 +57,7 @@ For every `.go` file in the diff, check ALL of the following.
 ## Output
 
 Return JSON matching the schema in `go-review-refs/agent-output-schema.json`.
+**Code snippets (JSON):** Default is **mode A**. If **any** line or small hunk from the current diff (or the cited `file`/`line` in fetched full file) suffices to show the problem, you **MUST** use mode A with non-empty `code_before` and `code_after` — do **not** use mode B to skip copying the diff. Use `code_snippet_unavailable`: `true` + `code_absence_note` (≥20 chars, English) + empty `code_before`/`code_after` **only** when no honest single-location snippet exists (cross-cutting, policy-only, missing artifact not in diff). See `go-review-refs/agent-output-schema.json` and `report-format.md` modes A/B.
 Most style issues are `minor` or `major`. Use `major` when the pattern is likely to confuse maintainers or cause subtle API misuse; `critical` only for rare cases (e.g. routing conflict that silently wrong handler).
 `positive` array is required — acknowledge clear idiomatic style.
 

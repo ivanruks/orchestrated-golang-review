@@ -2,6 +2,28 @@
 
 Use this template to render the final review report from merged sub-agent JSON reports.
 
+## Orchestrator contract (non-optional)
+
+For **every** finding (all severities), pick **exactly one** presentation:
+
+**A — Code snippets (default)**  
+Use when `code_snippet_unavailable` is absent, `false`, or not set:
+
+- Render **Before** and **After** fenced `go` blocks from `code_before` and `code_after`.
+- If either string is missing, empty, or only whitespace: **reconstruct** minimal snippets from Phase 1 (`tmp_dir/diffs/` plus full file: `tmp_dir/files/` for GitLab, or repo path for branch/local) at `{file}` around `{line}`, then render those inside the fences.
+- **Never** publish empty fenced `go` blocks under mode A.
+
+**B — No applicable snippet (explicit waiver)**  
+Use only when merged JSON has `code_snippet_unavailable: true`:
+
+- Render **no** Before/After code fences for that finding.
+- Render a line: **Code snippet:** not applicable — {code_absence_note}
+- Do **not** reconstruct snippets over a waiver; the agent asserted no honest single-location pair exists.
+
+**Do not** use a compact one-line format that drops both A and B (every finding must be either A or B).
+
+Use mode B sparingly (cross-cutting design, policy-only, missing artifact not in diff, multi-file contract). **If a single line or small hunk in the Phase 1 diff at this finding's `file`/`line` would illustrate the issue, mode A is mandatory** — sub-agents must not choose mode B to avoid quoting the diff; the orchestrator should prefer reconstruction (mode A) when diff + file text supply such a line.
+
 ---
 
 # Go Code Review | {title}
@@ -41,28 +63,29 @@ Group findings by agent category. For each finding:
 - **File:** `{file}:{line}`
 - **Category:** {category}
 - **Problem:** {problem — must include production impact}
-- **Before:**
-```go
-{code_before}
-```
-- **After:**
-```go
-{code_after}
-```
+- **If mode A** (`code_snippet_unavailable` not true): **Before:** / fenced `go` `{code_before}` — **After:** / fenced `go` `{code_after}` (after reconstruction if needed; see Orchestrator contract).
+- **If mode B** (`code_snippet_unavailable: true`): **Code snippet:** not applicable — {code_absence_note}
 
 ---
 
 ## Major ({N})
 
-Same structure as Critical, grouped by agent category.
+Same branching (mode A vs B) as Critical, grouped by agent category.
 
 ---
 
 ## Minor ({N})
 
-Compact format, one entry per finding:
+Same branching (mode A vs B) as Critical, grouped by agent category.
 
-- **[{id}]** `{file}:{line}` — {title}. {problem} → Fix: {code_after summary}
+### {Agent Category Name}
+
+#### [{id}] {title}
+- **File:** `{file}:{line}`
+- **Category:** {category}
+- **Problem:** {problem}
+- **If mode A** (`code_snippet_unavailable` not true): **Before:** / fenced `go` `{code_before}` — **After:** / fenced `go` `{code_after}` (after reconstruction if needed; see Orchestrator contract).
+- **If mode B** (`code_snippet_unavailable: true`): **Code snippet:** not applicable — {code_absence_note}
 
 ---
 
@@ -97,3 +120,4 @@ Notes:
 - If `--only` was used, note which agents were included in the Summary section
 - If an agent returned 0 findings, do not create an empty section for it
 - Agent category order for grouping: correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security
+- **Completeness:** under mode A, every finding must end with non-empty Before and After fences (after reconstruction if needed). Under mode B, `code_absence_note` must be present and substantive — never a finding with neither fences nor a waiver line

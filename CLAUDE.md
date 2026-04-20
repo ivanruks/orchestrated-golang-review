@@ -54,8 +54,8 @@ Changes can ripple across files. Here is where to look:
 |-----------------|------------|
 | Agent prompt (`go-review-refs/agents/*.md`) | All three `workflow.md` files (if the prompt template section changes), `agent-output-schema.json` (if output format changes) |
 | Context rules (`go-review-refs/context-rules/*.md`) | Nothing -- these are self-contained and source-agnostic |
-| Output schema (`go-review-refs/agent-output-schema.json`) | `go-review-refs/report-format.md`, agent prompts (if field names change). Schema includes `open_questions` (optional, maxItems 5) for unresolved concerns. |
-| Report template (`go-review-refs/report-format.md`) | Phase 5 in all three `workflow.md` files |
+| Output schema (`go-review-refs/agent-output-schema.json`) | `go-review-refs/report-format.md`, agent prompts (if field names change). Schema includes `open_questions` (optional, maxItems 5). Findings may set `code_snippet_unavailable` + `code_absence_note` when no single-location Before/After applies. |
+| Report template (`go-review-refs/report-format.md`) | Phase 5 in all three `workflow.md` files (includes mandatory Before/After code blocks for every finding severity) |
 | Phase 1 (Fetch) in one skill's `workflow.md` | Only that skill -- Phase 1 is the only skill-specific phase |
 | Phases 2-5 in one skill's `workflow.md` | The same phases in the other two `workflow.md` files -- they should stay in sync |
 | A skill's `SKILL.md` | Only that skill's `workflow.md` (if variables change) |

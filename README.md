@@ -330,8 +330,10 @@ Each sub-agent returns JSON in the following format (`go-review-refs/agent-outpu
 | `line` | integer | Line number |
 | `category` | string | Subcategory (e.g., "Data Race", "Resource Leak") |
 | `problem` | string | Issue description with production impact |
-| `code_before` | string | Current (problematic) code |
-| `code_after` | string | Suggested fix |
+| `code_before` | string | Current (problematic) code for the report Before block (or `""` when waiver applies) |
+| `code_after` | string | Suggested fix for the After block (or `""` when waiver applies) |
+| `code_snippet_unavailable` | boolean (optional) | When `true`, no Before/After; use empty `code_before`/`code_after` and required `code_absence_note` |
+| `code_absence_note` | string (optional) | Required with waiver: why no code snippet (English, min length per schema) |
 | `requires_verification` | boolean | Whether manual verification is needed |
 
 ---
@@ -345,7 +347,7 @@ The report is rendered using the template from `go-review-refs/report-format.md`
 3. **Summary** -- metrics table (files, lines, critical/major/minor counts) and verdict
 4. **Critical** -- detailed critical findings grouped by agent, with `code_before`/`code_after` blocks
 5. **Major** -- same structure for major findings
-6. **Minor** -- compact list, one line per finding
+6. **Minor** -- same as critical/major: default is Before/After Go fences; if `code_snippet_unavailable`, a **Code snippet: not applicable** line with `code_absence_note` instead of fences
 7. **Open Questions** -- unresolved questions and residual risks from all agents (only if present)
 8. **What Was Done Well** -- merged positive observations from all agents
 9. **Key Production Risks** -- production risk summary (only if critical/major findings exist)
