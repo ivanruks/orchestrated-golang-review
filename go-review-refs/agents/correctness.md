@@ -38,6 +38,8 @@ For every `.go` file in the diff, check ALL of the following. Do not skip any ca
 - [ ] Off-by-one in slice operations
 - [ ] Shadowed variable hiding an outer error: `err := f()` inside `if` shadows outer `err`
 - [ ] `switch` without `default` on enum-like values — new values will be silently ignored
+- [ ] `ctx, cancel := context.WithTimeout(ctx, ...)` (or `WithCancel`) **inside** an `if` block when the intent is to replace the outer `ctx` for the rest of the function — the new `ctx` is scoped to the block; outer `ctx` keeps the original deadline and downstream calls never see the timeout
+- [ ] **Declared** error return uses a concrete pointer type instead of `error` (e.g. `func F() *MyError`) — a nil `*MyError` is still a non-nil `error` interface value for callers. Same pitfall: `func F() error { var e *MyError; return e }` when `e` is nil. Do **not** flag `func F() error { return fmt.Errorf(...) }` or returning `*os.PathError` (or other concrete types) **through** an `error`-typed result; that pattern is normal.
 
 ## Review Standards
 

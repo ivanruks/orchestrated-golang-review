@@ -20,6 +20,7 @@ For every `.go` file in the diff, check ALL of the following.
 
 ### Memory Allocation
 - [ ] `append` in loop without pre-allocation: missing `make([]T, 0, estimatedCap)`
+- [ ] `[]byte("literal")` or `[]byte(`...`)` inside a loop body — allocates every iteration; hoist to a variable outside the loop
 - [ ] Map created without size hint: missing `make(map[K]V, estimatedSize)`
 - [ ] Large struct passed by value (>5 fields) where pointer would avoid copy
 - [ ] String concatenation with `+` in loop — use `strings.Builder`

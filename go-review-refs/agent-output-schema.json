@@ -7,7 +7,7 @@
   "properties": {
     "agent": {
       "type": "string",
-      "enum": ["correctness", "concurrency", "conventions", "performance", "security", "consistency", "transactions", "tests"]
+      "enum": ["correctness", "concurrency", "conventions", "style", "performance", "security", "consistency", "transactions", "tests"]
     },
     "files_checked": {
       "type": "integer",
@@ -21,7 +21,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^(CORR|CONC|CONV|PERF|SEC|CONS|TXN|TEST)-[0-9]+$"
+            "pattern": "^(CORR|CONC|CONV|STYL|PERF|SEC|CONS|TXN|TEST)-[0-9]+$"
           },
           "severity": {
             "type": "string",

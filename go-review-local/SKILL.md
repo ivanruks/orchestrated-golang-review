@@ -1,11 +1,11 @@
 ---
 name: go-review-local
-description: Multi-agent Go code review for uncommitted local changes vs target branch. Use when the user wants to review their staged and unstaged (tracked) changes relative to a target branch (e.g., main) before committing. Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag.
+description: Multi-agent Go code review for uncommitted local changes vs target branch. Use when the user wants to review their staged and unstaged (tracked) changes relative to a target branch (e.g., main) before committing. Analyzes correctness, concurrency, conventions, style, tests, consistency, transactions, performance, and security using 9 specialized sub-agents. Supports selective review with --only flag.
 ---
 
 # Go Review (Local Uncommitted)
 
-Multi-agent Go code review for uncommitted changes (staged + unstaged, tracked files only) relative to a target branch. Dispatches 8 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
+Multi-agent Go code review for uncommitted changes (staged + unstaged, tracked files only) relative to a target branch. Dispatches 9 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
 
 ## Usage
 
@@ -22,7 +22,7 @@ main
 Добавляю валидацию email и проверку уникальности username.
 ```
 
-Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consistency`, `transactions`, `performance`, `security`
+Available agents: `correctness`, `concurrency`, `conventions`, `style`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 ## Parse Input
 
@@ -41,7 +41,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consist
    - Split comma-separated values
    - Validate each against known agents list
    - If invalid agent name, stop and list valid names
-   - If `--only` not present, use all 8 agents
+   - If `--only` not present, use all 9 agents
 
 5. Capture `additional_context`: all remaining text that is not a recognized flag or flag value.
 

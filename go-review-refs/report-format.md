@@ -96,4 +96,4 @@ Notes:
 - Findings with `requires_verification: true` — append "(requires verification)" to the title
 - If `--only` was used, note which agents were included in the Summary section
 - If an agent returned 0 findings, do not create an empty section for it
-- Agent category order for grouping: correctness, concurrency, conventions, tests, consistency, transactions, performance, security
+- Agent category order for grouping: correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security

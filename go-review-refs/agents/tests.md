@@ -34,6 +34,9 @@ For every `.go` file in the diff, check the applicable items below. The first tw
 - [ ] Test only asserts `err == nil` without checking the actual result — proves it runs, not that it's correct
 - [ ] Test uses `time.Sleep` for synchronization instead of channels/WaitGroup/polling — flaky under load
 - [ ] Test modifies package-level state without cleanup — affects other tests in the same package
+- [ ] Table-driven test with `shouldCallX`-style bool columns and per-case mock branching — overdone; split into separate test functions with clearer intent
+- [ ] Table test struct with more than ~6 fields where several are behavior flags driving mocks — table is doing too much; split or simplify
+- [ ] Sequential blocks of assertions over different logical cases in one test function without `t.Run` — hard to read and to rerun one case; use subtests or a table
 
 ## Review Standards
 

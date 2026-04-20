@@ -33,6 +33,8 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Error context preserved through the call chain — wrapping adds context, not loses it
 - [ ] Nil check at layer boundaries — if service returns nil, does handler check before using?
 - [ ] Pagination/filtering parameters propagated correctly from handler to repository
+- [ ] Setter/constructor stores a passed-in slice or map without defensive copy — caller can mutate internal state after the call
+- [ ] Getter returns internal slice or map while holding a mutex but without returning a copy — caller can mutate protected state without the lock
 
 ### API Contract
 - [ ] Changed HTTP route or method — clients/docs updated

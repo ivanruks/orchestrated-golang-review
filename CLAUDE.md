@@ -20,7 +20,7 @@ Each skill has its own `SKILL.md` (entry point, input parsing) and `workflow.md`
 
 ```
 go-review-refs/
-  agents/           # 8 sub-agent prompts (correctness, concurrency, conventions, performance, security, tests, consistency, transactions)
+  agents/           # 9 sub-agent prompts (correctness, concurrency, conventions, style, performance, security, tests, consistency, transactions)
   context-rules/    # Per-agent trigger patterns for loading additional files beyond the diff
   agent-output-schema.json  # JSON schema all sub-agents must conform to
   report-format.md          # Markdown template for the final report
@@ -30,7 +30,7 @@ go-review-refs/
 ## Architecture
 
 - **Monolithic workflows:** Each skill's `workflow.md` contains all 5 phases inline (Fetch, Wave 1, Wave 2, Merge, Report). This is intentional for LLM reliability -- a single document the orchestrator follows top to bottom.
-- **Two-wave agent execution:** Wave 1 launches 6 agents in parallel (correctness, concurrency, conventions, performance, security, tests). Wave 2 launches 2 agents (consistency, transactions) that receive Wave 1 output as context. All 8 agents share the same prompts and schema.
+- **Two-wave agent execution:** Wave 1 launches 7 agents in parallel (correctness, concurrency, conventions, style, performance, security, tests). Wave 2 launches 2 agents (consistency, transactions) that receive Wave 1 output as context. All 9 agents share the same prompts and schema.
 - **tmp_dir vs output_dir:** Working data (metadata.json, diffs, full files) goes to `/tmp/go-review/...` (ephemeral). Persistent results (agent JSON reports, final-report.md) go to `docs/review/...` (committed to repo).
 - **GitLab skill specifics:** `--discussions` flag (opt-in for loading MR discussions), `--only` flag (subset of agents), `additional_context` as free text. Agents fetch additional files from GitLab MCP.
 - **Local skill specifics:** Agents read files directly from the repo (no copying). No MCP dependency. `--only` flag and `additional_context` supported.

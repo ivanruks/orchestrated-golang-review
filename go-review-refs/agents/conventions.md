@@ -18,6 +18,9 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] Same error wrapped multiple times in one call stack — redundant context
 - [ ] Error comparison with `==` instead of `errors.Is` — breaks when errors are wrapped
 - [ ] Sentinel error defined as `var` instead of the conventional `var ErrFoo = errors.New("foo")`
+- [ ] `"failed to ..."` prefix in `fmt.Errorf` / `errors.New` — the failure is already implied; repeated wrapping stacks as "failed to: failed to: ..."
+- [ ] `log.Print` / `log.Printf` / structured log in the **same error-handling path** (same branch before `return err`, not separated by a new function boundary) followed by `return err` — error is both logged and returned; pick one strategy (wrap and return for callers, or log and degrade without returning raw err)
+- [ ] Sentinel / error naming: exported sentinels start with `Err`; custom error **types** end with `Error` (e.g. `ParseError`)
 
 ### Interface Design
 - [ ] Interface defined at implementer site instead of consumer site
@@ -37,6 +40,7 @@ For every `.go` file in the diff, check ALL of the following.
 - [ ] God struct with 15+ fields — split by responsibility
 - [ ] Deep nesting (>3 levels) where early return would flatten the code
 - [ ] Magic numbers without named constants
+- [ ] Unnecessary `else` after `if` that assigns on all branches — e.g. `var a int; if cond { a = X } else { a = Y }` → prefer `a := Y; if cond { a = X }` to drop the else
 
 ### Naming
 - [ ] Exported symbol without godoc comment

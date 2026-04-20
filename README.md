@@ -2,7 +2,7 @@
 
 ## Overview
 
-Go Review is a set of three Claude Code skills that automate code review for Go code. Each skill targets a different source: GitLab Merge Requests, committed branch changes, or uncommitted local changes. All three dispatch 8 specialized sub-agents (correctness, concurrency, conventions, tests, consistency, transactions, performance, security), each analyzing diffs and full files against its own checklist. Agents run in two waves: Wave 1 launches 6 agents in parallel, then Wave 2 launches 2 agents that receive Wave 1 findings as additional context. All results are merged, deduplicated, and rendered into a unified report with a verdict (LGTM / REQUEST CHANGES / REJECT).
+Go Review is a set of three Claude Code skills that automate code review for Go code. Each skill targets a different source: GitLab Merge Requests, committed branch changes, or uncommitted local changes. All three dispatch 9 specialized sub-agents (correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security), each analyzing diffs and full files against its own checklist. Agents run in two waves: Wave 1 launches 7 agents in parallel, then Wave 2 launches 2 agents that receive Wave 1 findings as additional context. All results are merged, deduplicated, and rendered into a unified report with a verdict (LGTM / REQUEST CHANGES / REJECT).
 
 ---
 
@@ -44,10 +44,10 @@ User
 |  |   (CORR)    | |   (CONC)    | |   (CONV)    | |  (PERF)   |  |
 |  +-------------+ +-------------+ +-------------+ +-----------+  |
 |                                                                  |
-|  +-------------+ +-------------+                                 |
-|  |  security   | |    tests    |                                 |
-|  |   (SEC)     | |   (TEST)   |                                 |
-|  +-------------+ +-------------+                                 |
+|  +-------------+ +-------------+ +-------------+                 |
+|  |   style     | |  security   | |    tests    |                 |
+|  |   (STYL)    | |   (SEC)     | |   (TEST)    |                 |
+|  +-------------+ +-------------+ +-------------+                 |
 +------------------------------------------------------------------+
     |
     |  All Wave 1 agents complete, JSON reports saved
@@ -126,7 +126,7 @@ Flags:
 
 ### Available Agents
 
-`correctness`, `concurrency`, `conventions`, `tests`, `consistency`, `transactions`, `performance`, `security`
+`correctness`, `concurrency`, `conventions`, `style`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 When `--only` is used, the final report includes a note indicating a partial review.
 
@@ -150,6 +150,7 @@ orchestrated-go-review/
 │   │   ├── correctness.md             #     Bugs, resource leaks, panics
 │   │   ├── concurrency.md             #     Races, deadlocks, goroutine leaks
 │   │   ├── conventions.md             #     Idiomatic Go patterns
+│   │   ├── style.md                   #     Naming, imports, routing idioms, interface style
 │   │   ├── tests.md                   #     Test adequacy, missing coverage
 │   │   ├── consistency.md             #     Data flow integrity (Wave 2)
 │   │   ├── transactions.md            #     Atomicity, idempotency (Wave 2)
@@ -159,6 +160,7 @@ orchestrated-go-review/
 │   │   ├── correctness.md
 │   │   ├── concurrency.md
 │   │   ├── conventions.md
+│   │   ├── style.md
 │   │   ├── tests.md
 │   │   ├── consistency.md
 │   │   ├── transactions.md
@@ -183,6 +185,7 @@ orchestrated-go-review/
 | **correctness** | `CORR` | 1 | Bugs, resource leaks, logic errors | Nil dereference, panics, `http.Response.Body`/`sql.Rows`/`os.File` leaks, ignored errors, `errors.Is` vs `==` |
 | **concurrency** | `CONC` | 1 | Data races, goroutines, mutexes | Goroutines without shutdown mechanism, map writes from multiple goroutines, lock held during I/O, channels without `ctx.Done()` |
 | **conventions** | `CONV` | 1 | Idiomatic Go patterns | `fmt.Errorf` without `%w`, context in struct field, functions >60 lines, naming, godoc |
+| **style** | `STYL` | 1 | Idioms and presentation | Package/file naming, import grouping, `http.ServeMux` patterns, pointer-to-interface, nil vs empty slices |
 | **performance** | `PERF` | 1 | Performance and allocations | O(n^2) in hot paths, `append` without pre-allocation, SQL in loop (N+1), `regexp.Compile` inside function body |
 | **security** | `SEC` | 1 | Security vulnerabilities | SQL/command injection, path traversal, hardcoded credentials, `math/rand` for secrets, PII leaks in logs |
 | **tests** | `TEST` | 1 | Test adequacy and coverage gaps | Missing tests for new error paths, outdated assertions after behavior change, untested concurrent/tx paths |
@@ -213,7 +216,7 @@ File filtering applies to all skills: `.go` files only, excluding `vendor/`, `*_
 
 ### Phase 2: Wave 1
 
-Parallel launch of 6 agents: `correctness`, `concurrency`, `conventions`, `performance`, `security`, `tests`. Each agent:
+Parallel launch of 7 agents: `correctness`, `concurrency`, `conventions`, `style`, `performance`, `security`, `tests`. Each agent:
 - Reads metadata and diffs from `tmp_dir`
 - Accesses full source files (GitLab skill: from `tmp_dir/files/` or via MCP; local skills: directly from the repo)
 - Loads additional files when context-rules triggers fire
@@ -227,7 +230,7 @@ Parallel launch of 2 agents: `consistency`, `transactions`. They receive the sam
 
 Combine all agent results:
 1. Load all JSON reports from `output_dir/reports/`
-2. Deduplicate: when two agents flag the same file+line, the more specialized agent wins (`concurrency` > `correctness` for races, `transactions` > `correctness` for leaks in tx scope, `security` > `correctness` for injection, `consistency` > `conventions` for interface contracts)
+2. Deduplicate: when two agents flag the same file+line, the more specialized agent wins (`concurrency` > `correctness` for races, `transactions` > `correctness` for leaks in tx scope, `security` > `correctness` for injection, `consistency` > `conventions` for interface contracts, `conventions` > `style` for naming overlap, `correctness` > `style` for pointer-to-interface)
 3. Group: by severity (critical -> major -> minor), then by agent category
 4. Compute statistics and determine verdict
 5. Merge positive findings

@@ -1,11 +1,11 @@
 ---
 name: go-review-branch
-description: Multi-agent Go code review for local branch changes vs target branch. Use when the user wants to review all committed changes on their current branch relative to a target branch (e.g., main). Analyzes correctness, concurrency, conventions, tests, consistency, transactions, performance, and security using 8 specialized sub-agents. Supports selective review with --only flag.
+description: Multi-agent Go code review for local branch changes vs target branch. Use when the user wants to review all committed changes on their current branch relative to a target branch (e.g., main). Analyzes correctness, concurrency, conventions, style, tests, consistency, transactions, performance, and security using 9 specialized sub-agents. Supports selective review with --only flag.
 ---
 
 # Go Review (Branch)
 
-Multi-agent Go code review for all commits on the current branch relative to a target branch. Dispatches 8 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
+Multi-agent Go code review for all commits on the current branch relative to a target branch. Dispatches 9 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
 
 ## Usage
 
@@ -22,7 +22,7 @@ main
 Рефакторинг слоя репозиториев, переход на sqlc.
 ```
 
-Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consistency`, `transactions`, `performance`, `security`
+Available agents: `correctness`, `concurrency`, `conventions`, `style`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 ## Parse Input
 
@@ -37,7 +37,7 @@ Available agents: `correctness`, `concurrency`, `conventions`, `tests`, `consist
    - Split comma-separated values
    - Validate each against known agents list
    - If invalid agent name, stop and list valid names
-   - If `--only` not present, use all 8 agents
+   - If `--only` not present, use all 9 agents
 
 4. Capture `additional_context`: all remaining text that is not a recognized flag or flag value.
 

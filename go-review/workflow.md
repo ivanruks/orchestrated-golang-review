@@ -10,7 +10,7 @@ description: 5-phase orchestration workflow for GitLab MR Go code review
 Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 - `{{project_id}}` — GitLab project path (e.g., `group/subgroup/project`)
 - `{{merge_request_iid}}` — MR numeric ID
-- `{{selected_agents}}` — list of agents to run (default: all 8)
+- `{{selected_agents}}` — list of agents to run (default: all 9)
 - `{{discussions_enabled}}` — whether to load MR discussions (default: false)
 - `{{additional_context}}` — free text context from user (may be empty)
 - `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/go-review/2026-04-03T14-30_mr-456/`)
@@ -19,13 +19,14 @@ Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
 ## Constants
 
 ```
-WAVE_1_AGENTS = [correctness, concurrency, conventions, performance, security, tests]
+WAVE_1_AGENTS = [correctness, concurrency, conventions, style, performance, security, tests]
 WAVE_2_AGENTS = [consistency, transactions]
 
 AGENT_PREFIXES = {
   correctness: "CORR",
   concurrency: "CONC",
   conventions: "CONV",
+  style: "STYL",
   performance: "PERF",
   security: "SEC",
   tests: "TEST",
@@ -231,6 +232,8 @@ For each pair of findings from different agents:
     - security > correctness (for injection issues)
     - consistency > conventions (for interface contract issues)
     - conventions > correctness (for error handling style — missing %w, error string format)
+    - conventions > style (for naming / doc overlap — conventions owns API-facing convention)
+    - correctness > style (for pointer-to-interface and similar foot-guns that are correctness-adjacent)
     - concurrency > performance (for lock contention — deadlock risk outweighs perf concern)
     - concurrency > correctness (for context cancellation leaks — goroutine lifecycle is root cause)
     - tests > correctness (for missing test coverage — tests agent is more specific about what's missing)
@@ -248,7 +251,7 @@ For each pair of findings from different agents:
 
 Group findings:
 1. First level: severity (critical → major → minor)
-2. Second level: agent category (in order: correctness, concurrency, conventions, tests, consistency, transactions, performance, security)
+2. Second level: agent category (in order: correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security)
 
 ### Step 4.4 — Compute statistics
 
