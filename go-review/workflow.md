@@ -7,14 +7,14 @@ description: 5-phase orchestration workflow for GitLab MR Go code review
 
 ## Prerequisites
 
-Before executing this workflow, the orchestrator (SKILL.md) must have resolved:
-- `{{project_id}}` — GitLab project path (e.g., `group/subgroup/project`)
+Orchestrator (SKILL.md) must have resolved:
+- `{{project_id}}` — GitLab project path
 - `{{merge_request_iid}}` — MR numeric ID
-- `{{selected_agents}}` — list of agents to run (default: all 9)
-- `{{discussions_enabled}}` — whether to load MR discussions (default: false)
-- `{{additional_context}}` — free text context from user (may be empty)
-- `{{tmp_dir}}` — path to temporary working directory (e.g., `/tmp/go-review/2026-04-03T14-30_mr-456/`)
-- `{{output_dir}}` — path to persistent output directory (e.g., `docs/review/2026-04-03T14-30_mr-456/`)
+- `{{selected_agents}}` — agents to run (default: all 9)
+- `{{discussions_enabled}}` — load MR discussions (default: false)
+- `{{additional_context}}` — free text from user (may be empty)
+- `{{tmp_dir}}` — temp dir (e.g., `/tmp/go-review/2026-04-03T14-30_mr-456/`)
+- `{{output_dir}}` — persistent dir (e.g., `docs/review/2026-04-03T14-30_mr-456/`)
 
 ## Constants
 
@@ -42,9 +42,9 @@ MAX_FILES_TO_FETCH = 20
 
 ## Phase 1: Fetch from GitLab
 
-Goal: Download MR data from GitLab and save to `{{tmp_dir}}`.
+Save MR data to `{{tmp_dir}}`.
 
-### Step 1.1 — Create directories
+### 1.1 — Create dirs
 
 ```bash
 mkdir -p {{tmp_dir}}/diffs
@@ -52,52 +52,49 @@ mkdir -p {{tmp_dir}}/files
 mkdir -p {{output_dir}}/reports
 ```
 
-### Step 1.2 — Get MR metadata
+### 1.2 — MR metadata
 
 ```
 CallMcpTool(server: "user-gitlab", toolName: "get_merge_request",
   arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
 ```
 
-Extract from response: title, description, author.username, source_branch, target_branch.
+Extract: title, description, author.username, source_branch, target_branch.
 
-### Step 1.3 — Get discussions (optional)
+### 1.3 — Discussions (optional)
 
-If `{{discussions_enabled}}` is true:
+If `{{discussions_enabled}}` true:
 ```
 CallMcpTool(server: "user-gitlab", toolName: "mr_discussions",
   arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
 ```
-Save response as `existing_discussions`.
+Save as `existing_discussions`. If false: `existing_discussions = []`.
 
-If `{{discussions_enabled}}` is false: set `existing_discussions = []`.
-
-### Step 1.4 — Get diffs
+### 1.4 — Diffs
 
 ```
 CallMcpTool(server: "user-gitlab", toolName: "get_merge_request_diffs",
   arguments: {project_id: "{{project_id}}", merge_request_iid: {{merge_request_iid}}})
 ```
 
-For each diff entry where `new_path` ends with `.go` and does NOT match any EXCLUDED_FILE_PATTERNS:
-- Save diff content to `{{tmp_dir}}/diffs/<path-with-dashes>.diff`
-  (replace `/` with `-` in path, e.g., `internal/service/user.go` → `internal-service-user.go.diff`)
-- Track: file path, lines added, lines removed
+For each diff where `new_path` ends `.go` and NOT matching EXCLUDED_FILE_PATTERNS:
+- Save to `{{tmp_dir}}/diffs/<path-with-dashes>.diff` (replace `/` with `-`)
+- Track: file path, lines added/removed
 
-If no `.go` files in diff, stop and report: "No Go files changed in this MR."
+No `.go` files → stop: "No Go files changed in this MR."
 
-### Step 1.5 — Get full file contents
+### 1.5 — Full file contents
 
-For each `.go` file from step 1.4, ordered by diff size (largest first), up to MAX_FILES_TO_FETCH:
+Per `.go` file from 1.4, ordered by diff size (largest first), up to MAX_FILES_TO_FETCH:
 
 ```
 CallMcpTool(server: "user-gitlab", toolName: "get_file_contents",
   arguments: {project_id: "{{project_id}}", file_path: "<file path>", ref: "{{source_branch}}"})
 ```
 
-Save to `{{tmp_dir}}/files/<original path>` preserving directory structure.
+Save to `{{tmp_dir}}/files/<original path>` preserving dir structure.
 
-### Step 1.6 — Write metadata.json
+### 1.6 — metadata.json
 
 Save to `{{tmp_dir}}/metadata.json`:
 ```json
@@ -114,9 +111,8 @@ Save to `{{tmp_dir}}/metadata.json`:
 }
 ```
 
-### Step 1.7 — Report fetch results
+### 1.7 — Report
 
-Output to user:
 ```
 Fetched MR !{{merge_request_iid}}: <title>
   Author: <author> · <source_branch> → <target_branch>
@@ -130,13 +126,13 @@ Fetched MR !{{merge_request_iid}}: <title>
 
 ## Phase 2: Wave 1
 
-Goal: Run Wave 1 agents in parallel. Each agent analyzes diffs + full files and writes a JSON report.
+Run Wave 1 agents parallel. Each analyzes diffs + full files, writes JSON report.
 
 ### For each agent in `WAVE_1_AGENTS ∩ {{selected_agents}}`:
 
-Launch as a **parallel Agent** (use the Agent tool with all agents in a single message for true parallelism).
+Launch all as **parallel Agent** (single message).
 
-Each agent prompt is constructed as follows:
+Agent prompt:
 
 ```
 You are the {agent_name} review agent.
@@ -145,26 +141,26 @@ You are the {agent_name} review agent.
 
 ## Input
 
-Metadata (including existing discussions to NOT duplicate): {{tmp_dir}}/metadata.json
+Metadata (including existing discussions — do NOT duplicate): {{tmp_dir}}/metadata.json
 Diffs: {{tmp_dir}}/diffs/
-Output directory for your report: {{output_dir}}/reports/
+Output dir: {{output_dir}}/reports/
 
 ## File Access
 
-Full files are in {{tmp_dir}}/files/.
-If a file you need is not there, fetch it via GitLab MCP:
+Full files in {{tmp_dir}}/files/.
+If file not there, fetch via GitLab MCP:
   CallMcpTool(server: "user-gitlab", toolName: "get_file_contents",
     arguments: {project_id: "{{project_id}}", file_path: "<path>", ref: "{{source_branch}}"})
-To search for files in the repository:
+To search repo:
   CallMcpTool(server: "user-gitlab", toolName: "get_repository_tree",
     arguments: {project_id: "{{project_id}}", ref: "{{source_branch}}", path: "<dir>", recursive: true})
-Load go-review-refs/operations.md if you need to find other MCP operations.
+Load go-review-refs/operations.md for other MCP ops.
 
 ## Context Rules
 
 {contents of go-review-refs/context-rules/{agent_name}.md}
 
-## Task Context (provided by author)
+## Task Context (from author)
 
 {{additional_context}}
 
@@ -174,92 +170,87 @@ Load go-review-refs/operations.md if you need to find other MCP operations.
 
 ## Instructions
 
-1. Read metadata.json to understand the MR context and existing discussions.
-2. Read each .diff file in diffs/ directory.
-3. For each diff, read the corresponding full file from files/ directory.
-4. Before applying your checklist, summarize internally: what changed, why, and what is the main execution path affected. This grounds your analysis.
-5. Apply your checklist to every file.
-6. When your context-rules trigger, load additional files using File Access instructions above.
-7. Do NOT duplicate findings from existing_discussions in metadata.json.
-8. **IMPORTANT: Write your JSON report to disk** using the Write tool at {{output_dir}}/reports/{agent_name}.json
-   The file MUST persist on the filesystem after you finish. Do not just return the JSON — it must be saved to disk.
-9. Return the JSON report content as well (for the orchestrator to use immediately).
+1. Read metadata.json for MR context + existing discussions.
+2. Read each .diff in diffs/.
+3. Read corresponding full file from files/.
+4. Before checklist: summarize what changed, why, main execution path affected.
+5. Apply checklist to every file.
+6. Context-rules trigger → load additional files via File Access.
+7. Don't duplicate findings from existing_discussions.
+8. **Write JSON report to disk** via Write tool at {{output_dir}}/reports/{agent_name}.json — MUST persist on filesystem.
+9. Return JSON content too (orchestrator uses immediately).
 ```
 
-Wait for ALL Wave 1 agents to complete before proceeding to Phase 3.
+Wait for ALL Wave 1 before Phase 3.
 
 ---
 
 ## Phase 3: Wave 2
 
-Goal: Run Wave 2 agents in parallel. They receive Wave 1 findings as additional context.
+Run Wave 2 agents parallel. Get Wave 1 findings as extra context.
 
 ### For each agent in `WAVE_2_AGENTS ∩ {{selected_agents}}`:
 
-Launch as a **parallel Agent**. Same prompt structure as Phase 2, with this addition after the Input section:
+Launch as **parallel Agent**. Same prompt as Phase 2, plus after Input:
 
 ```
 ## Wave 1 Findings
 
-The following agents have already completed their analysis. Their reports are in {{output_dir}}/reports/.
-Read these reports before starting your analysis — use them to:
-- Avoid duplicating findings already reported
-- Use their context to inform your analysis (e.g., a correctness resource leak may indicate a transaction issue)
+Reports in {{output_dir}}/reports/. Read before starting:
+- Avoid duplicating already-reported findings
+- Use their context (e.g., correctness resource leak → transaction issue)
 
 Available Wave 1 reports:
 {list of reports/*.json files that exist}
 ```
 
-Wait for ALL Wave 2 agents to complete before proceeding to Phase 4.
+Wait for ALL Wave 2 before Phase 4.
 
 ---
 
 ## Phase 4: Merge
 
-Goal: Combine all agent JSON reports into a single deduplicated, sorted findings list.
+Combine all agent JSON reports → deduplicated, sorted findings.
 
-### Step 4.1 — Load all reports
+### 4.1 — Load all reports
 
-Read every `{{output_dir}}/reports/*.json` file.
+Read every `{{output_dir}}/reports/*.json`.
 
-### Step 4.2 — Deduplicate
+### 4.2 — Deduplicate
 
-For each pair of findings from different agents:
-- If `file` AND `line` match (same location):
-  - Keep the finding from the more specialized agent:
-    - concurrency > correctness (for race conditions)
-    - transactions > correctness (for resource leaks in tx scope)
-    - security > correctness (for injection issues)
-    - consistency > conventions (for interface contract issues)
-    - conventions > correctness (for error handling style — missing %w, error string format)
-    - conventions > style (for naming / doc overlap — conventions owns API-facing convention)
-    - correctness > style (for pointer-to-interface and similar foot-guns that are correctness-adjacent)
-    - concurrency > performance (for lock contention — deadlock risk outweighs perf concern)
-    - concurrency > correctness (for context cancellation leaks — goroutine lifecycle is root cause)
-    - tests > correctness (for missing test coverage — tests agent is more specific about what's missing)
-    - tests > conventions (for test quality — tests agent owns test patterns)
-  - If neither is more specialized, keep both (different perspectives are valuable)
+Same `file` AND `line` from different agents → keep more specialized:
+- concurrency > correctness (races)
+- transactions > correctness (resource leaks in tx)
+- security > correctness (injection)
+- consistency > conventions (interface contracts)
+- conventions > correctness (error handling style)
+- conventions > style (naming/doc — conventions owns API-facing)
+- correctness > style (pointer-to-interface foot-guns)
+- concurrency > performance (lock contention → deadlock risk)
+- concurrency > correctness (ctx cancellation → goroutine lifecycle)
+- tests > correctness (missing coverage — tests more specific)
+- tests > conventions (test quality — tests owns patterns)
+- Neither specialized → keep both
 
-#### Dedup Rules (Strip / Preserve)
+#### Dedup Rules
 
-- **Strip:** Duplicate finding on same file:line from lower-priority agent — remove the lower-priority one.
-- **Preserve:** Keep both findings if they describe different failure modes on the same line, even from different agents.
-- **Positive merge:** Deduplicate semantically similar positives; keep the more specific phrasing.
-- **Open questions merge:** Union all; deduplicate by meaning; cap at 10 total.
+- **Strip:** Same file:line from lower-priority agent → remove
+- **Preserve:** Different failure modes on same line → keep both
+- **Positives:** Dedup semantically similar; keep more specific
+- **Open questions:** Union all; dedup by meaning; cap 10
 
-### Step 4.3 — Sort and group
+### 4.3 — Sort and group
 
-Group findings:
-1. First level: severity (critical → major → minor)
-2. Second level: agent category (in order: correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security)
+1. Severity: critical → major → minor
+2. Agent category: correctness, concurrency, conventions, style, tests, consistency, transactions, performance, security
 
-### Step 4.4 — Compute statistics
+### 4.4 — Statistics
 
 ```json
 {
-  "files_checked": "<union of files_checked across all agents>",
-  "lines_added": "<from Phase 1>",
-  "lines_removed": "<from Phase 1>",
+  "files_checked": "<union across agents>",
+  "lines_added": "<Phase 1>",
+  "lines_removed": "<Phase 1>",
   "critical_count": "<count>",
   "major_count": "<count>",
   "minor_count": "<count>",
@@ -267,66 +258,52 @@ Group findings:
 }
 ```
 
-### Step 4.5 — Merge positive findings
+### 4.5 — Merge positives
 
-Collect all `positive` arrays from all agents. Deduplicate semantically similar observations; keep the more specific phrasing. Keep as bullet list.
+Collect `positive` arrays. Dedup semantically; keep specific phrasing.
 
-### Step 4.6 — Merge open questions
+### 4.6 — Merge open questions
 
-Collect all `open_questions` arrays from all agents. Deduplicate by meaning. Cap at 10 total. Prefix each with the agent name.
+Collect `open_questions`. Dedup by meaning. Cap 10. Prefix with agent name.
 
 ---
 
 ## Phase 5: Report
 
-Goal: Render the final markdown report and present to user.
-
-### Step 5.1 — Load template
+### 5.1 — Load template
 
 Read `go-review-refs/report-format.md`.
 
-### Step 5.2 — Render
+### 5.2 — Render
 
-Fill the template with:
-- MR metadata from `{{tmp_dir}}/metadata.json`
-- Statistics from Phase 4
-- Grouped findings from Phase 4
-- Merged positive findings
-- Key production risks (summarize critical + major findings impact)
+Fill with: metadata, statistics, grouped findings, positives, key production risks.
 
-**Report snippets (mandatory):** Follow `## Orchestrator contract` in `go-review-refs/report-format.md`. For each finding: if `code_snippet_unavailable` is `true`, render **Code snippet:** not applicable — `code_absence_note` only (no Before/After fences; do not reconstruct over the waiver). Otherwise render Before/After fenced Go from `code_before` / `code_after`; if either is empty or missing, **reconstruct** from `{{tmp_dir}}/diffs/` and `{{tmp_dir}}/files/<path>` at `file`/`line`. Do not ship mode A with empty fences, or mode B without `code_absence_note`.
+**Snippets:** Follow `## Orchestrator contract` in `report-format.md`. Per finding: `code_snippet_unavailable: true` → render **Code snippet:** not applicable — `code_absence_note` (no fences, don't reconstruct). Otherwise → Before/After `go` fences from `code_before`/`code_after`; if empty → **reconstruct** from `{{tmp_dir}}/diffs/` + `{{tmp_dir}}/files/` at `file`/`line`. No mode A with empty fences. No mode B without `code_absence_note`.
 
-If `--only` was used, add a note in Summary: "Partial review: only {agents} were run."
+`--only` → add "Partial review: only {agents} were run." in Summary.
 
-### Step 5.3 — Save
+### 5.3 — Save
 
-Write to `{{output_dir}}/final-report.md`.
+Write `{{output_dir}}/final-report.md`.
 
-### Step 5.4 — Output
+### 5.4 — Output
 
-Display the full final report to the user.
+Display full report to user.
 
 ---
 
 ## Error Handling
 
-- If GitLab MCP is unavailable during Phase 1, stop and report the error to the user.
-- If no `.go` files in the diff, report "No Go files changed in this MR" and stop.
-- If a sub-agent fails (timeout, error), log the failure and continue with remaining agents.
-  Add a note to the final report: "Agent {name} failed: {reason}. Its category was not reviewed."
-- If all Wave 1 agents fail, stop and report the error. Do not launch Wave 2.
-- If a sub-agent returns invalid JSON, skip it and note in the report.
+- GitLab MCP unavailable → stop, report error
+- No `.go` in diff → "No Go files changed in this MR", stop
+- Sub-agent fails → log, continue. Note: "Agent {name} failed: {reason}. Category not reviewed."
+- All Wave 1 fail → stop. Don't launch Wave 2
+- Invalid JSON from agent → skip, note in report
 
 ---
 
 ## Data Retention
 
-**Do NOT delete any files from `{{output_dir}}` after the review.**
+**Don't delete `{{output_dir}}` files.** Reports preserved: `reports/` (agent JSONs) + `final-report.md`. Temp `{{tmp_dir}}` cleaned by OS.
 
-All reports must be preserved:
-- `reports/` — individual agent JSON reports for debugging/comparison
-- `final-report.md` — the rendered report
-
-Temporary files in `{{tmp_dir}}` (metadata.json, diffs/, files/) will be cleaned up by the OS.
-
-**Important for sub-agents:** When writing reports to `reports/`, use the Write tool to create the file. Do NOT use temporary storage — the JSON report must persist on disk at `{{output_dir}}/reports/{agent_name}.json`.
+**Sub-agents:** Write reports via Write tool to `{{output_dir}}/reports/{agent_name}.json`. Must persist on disk.

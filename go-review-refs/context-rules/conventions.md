@@ -1,14 +1,14 @@
 # Context Rules: Conventions Agent
 
-Before analyzing diffs, read this table. When you see a trigger pattern in the diff, load the additional context described.
+When trigger seen in diff, load context described. **How**: File Access instructions from agent prompt; search repo when noted.
 
-| Trigger in diff | What to load | How | Why |
-|---|---|---|---|
-| New exported type or function | Usage sites in the same package and callers | Search repo, then use File Access instructions | Verify naming follows Go conventions, godoc present |
-| Interface definition | Packages that consume this interface | Use File Access instructions from your prompt | Interface should be defined on consumer side, not implementer side |
-| `context.Context` stored in struct field | All methods of that struct | Use File Access instructions from your prompt | Context must be passed as first argument, never stored in struct |
-| Error returned with `fmt.Errorf` without `%w` | Callers that check the error | Use File Access instructions from your prompt | Without %w, callers cannot use errors.Is/errors.As |
-| Error string starting with uppercase or ending with period | N/A (local check) | N/A | Go convention: error strings are lowercase, no trailing punctuation |
-| `init()` function | Full file | Use File Access instructions from your prompt | init() should only be used for package-level registration, never business logic |
-| Function with >4 parameters | N/A (local check) | N/A | Consider options struct pattern |
-| Exported function returning unexported type | Full file | Use File Access instructions from your prompt | Exported API cannot use unexported types |
+| Trigger | Load | Why |
+|---|---|---|
+| New exported type/function | Usage sites + callers (search repo) | Naming follows Go conventions? Godoc present? |
+| Interface definition | Consuming packages | Interface at consumer side, not implementer |
+| `context.Context` stored in struct | All methods of struct | Must pass as first arg, never store |
+| `fmt.Errorf` without `%w` | Callers checking error | Without %w, can't `errors.Is`/`errors.As` |
+| Error string uppercase or ends with period | N/A (local) | Go: lowercase, no trailing punctuation |
+| `init()` function | Full file | Only for package-level registration |
+| Function >4 params | N/A (local) | Consider options struct |
+| Exported func returning unexported type | Full file | Exported API can't use unexported types |

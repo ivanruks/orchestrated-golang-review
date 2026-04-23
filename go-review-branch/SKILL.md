@@ -5,7 +5,7 @@ description: Multi-agent Go code review for local branch changes vs target branc
 
 # Go Review (Branch)
 
-Multi-agent Go code review for all commits on the current branch relative to a target branch. Dispatches 9 specialized sub-agents to analyze diffs and source files, then merges their findings into a unified report.
+Multi-agent Go code review — committed changes on current branch vs target. 9 sub-agents analyze diffs + source, merge into unified report.
 
 ## Usage
 
@@ -22,36 +22,22 @@ main
 Рефакторинг слоя репозиториев, переход на sqlc.
 ```
 
-Available agents: `correctness`, `concurrency`, `conventions`, `style`, `tests`, `consistency`, `transactions`, `performance`, `security`
+Agents: `correctness`, `concurrency`, `conventions`, `style`, `tests`, `consistency`, `transactions`, `performance`, `security`
 
 ## Parse Input
 
-1. Extract target branch name — the first argument (required).
-   - Validate it exists: `git rev-parse --verify <target_branch>`
-   - If it does not exist, stop and say: "Branch `<target_branch>` not found."
+1. Target branch — first arg (required). Validate: `git rev-parse --verify <target_branch>`. Not found → stop: "Branch `<target_branch>` not found."
 
-2. Determine source branch: `git branch --show-current`
-   - If detached HEAD, stop and say: "Cannot review from detached HEAD. Please check out a branch."
+2. Source branch: `git branch --show-current`. Detached HEAD → stop: "Cannot review from detached HEAD."
 
-3. Parse `--only` flag if present:
-   - Split comma-separated values
-   - Validate each against known agents list
-   - If invalid agent name, stop and list valid names
-   - If `--only` not present, use all 9 agents
+3. `--only`: split comma-separated, validate. Invalid → stop, list valid. Absent → all 9.
 
-4. Capture `additional_context`: all remaining text that is not a recognized flag or flag value.
+4. `additional_context`: remaining text not flag/value.
 
-5. Generate paths:
+5. Paths:
    - `tmp_dir` = `/tmp/go-review/<YYYY-MM-DDTHH-MM>_branch-<source_branch>/`
    - `output_dir` = `docs/review/<YYYY-MM-DDTHH-MM>_branch-<source_branch>/`
-   - Timestamp: current time, 24h format, dashes instead of colons
 
 ## Execute
 
-Load and follow `workflow.md` (in the same directory as this SKILL.md) with the resolved variables:
-- `{{target_branch}}`
-- `{{source_branch}}`
-- `{{selected_agents}}`
-- `{{additional_context}}`
-- `{{tmp_dir}}`
-- `{{output_dir}}`
+Load `workflow.md` (same dir) with resolved: `{{target_branch}}`, `{{source_branch}}`, `{{selected_agents}}`, `{{additional_context}}`, `{{tmp_dir}}`, `{{output_dir}}`
